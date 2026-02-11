@@ -1,0 +1,5 @@
+package com.rbilling.model;
+
+public enum ERole {
+	ROLE_ADMIN,ROLE_FRANCHESE,ROLE_MANAGER,ROLE_EMPLOYEE,ROLE_CLIENT
+}
