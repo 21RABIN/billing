@@ -1,12 +1,30 @@
 package com.rbilling.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.rbilling.DTO.ProductDTO;
+import com.rbilling.service.ProductService;
 
 @CrossOrigin(origins = "*", maxAge = 3600)  // Allowing all origins is risky. Consider restricting to trusted domains in production.
 @RestController
 @RequestMapping("/api/v1/product")
 public class ProductController {
+	
+	@Autowired
+	 ProductService prodservice;
+	
+	@PostMapping("/create")//Both Api Create and Update 
+    @PreAuthorize("hasRole('FRANCHESE')")
+    public ResponseEntity<?> createUpdateProduct(@RequestBody ProductDTO proddto) {
+        
+        return prodservice.createUpdateProduct(proddto);
+    }
 
 }

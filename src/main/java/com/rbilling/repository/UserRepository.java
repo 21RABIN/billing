@@ -30,5 +30,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 	
 	@Query(value = "SELECT r.role AS role_name FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = :user_id",nativeQuery = true)
 	String getRoleNameByUserId(int user_id);
+
+	boolean existsByEmailAndIdNot(String email, Long userId);
+
+	
 	
 }
