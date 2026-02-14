@@ -22,10 +22,10 @@ public class ServicesImpl implements ServicesService {
 
 			
 			Services service = Services.builder()
-                    .businessUnitId(servdto.getBusinessUnitId())
+                    .businessUnitId(servdto.getBusiness_unit_id())
                     .name(servdto.getName())
-                    .basePrice(servdto.getBasePrice())
-                    .gstPercent(servdto.getGstPercent())
+                    .base_price(servdto.getBase_price())
+                    .gst_percent(servdto.getGst_percent())
                     .isActive(true)
                     .build();
 
@@ -36,7 +36,7 @@ public class ServicesImpl implements ServicesService {
 
 		else {
 
-			Services service = servrepo.findByIdAndBusinessUnitId(servdto.getId(),servdto.getBusinessUnitId());
+			Services service = servrepo.findByIdAndBusinessUnitId(servdto.getId(),servdto.getBusiness_unit_id());
 
 			if (service == null) {
 				return ResponseEntity.badRequest().body(new MessageResponse("Services not found or unauthorized"));
@@ -45,11 +45,11 @@ public class ServicesImpl implements ServicesService {
 			if (servdto.getName() != null)
 				service.setName(servdto.getName());
 
-			if (servdto.getBasePrice() != null)
-				service.setBasePrice(servdto.getBasePrice());
+			if (servdto.getBase_price() != null)
+				service.setBase_price(servdto.getBase_price());
 
-			if (servdto.getGstPercent() != null)
-				service.setGstPercent(servdto.getGstPercent());
+			if (servdto.getGst_percent() != null)
+				service.setGst_percent(servdto.getGst_percent());
 
 			if (servdto.getIsActive() != null)
 				service.setIsActive(true);

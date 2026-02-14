@@ -53,11 +53,11 @@ public class CustomerServiceImpl implements CustomerService  {
         	  
         	  
             
-            if (cusdto.getBusinessUnitId() == null) {
+            if (cusdto.getBusiness_unit_id() == null) {
 				return ResponseEntity.badRequest().body(new MessageResponse("Business Unit is required"));
 			}
 
-			BusinessUnit unit = bunitrepo.findById(cusdto.getBusinessUnitId()).orElse(null);
+			BusinessUnit unit = bunitrepo.findById(cusdto.getBusiness_unit_id()).orElse(null);
 
 			if (unit == null) {
 				return ResponseEntity.badRequest().body(new MessageResponse("Invalid Business Unit"));
@@ -102,30 +102,21 @@ public class CustomerServiceImpl implements CustomerService  {
                     
         }
 
-        customer.setBusinessUnitId(cusdto.getBusinessUnitId());
-        customer.setName(cusdto.getName());
-        customer.setMobile(cusdto.getMobile());
-        customer.setEmail(cusdto.getEmail());
-        customer.setAddress(cusdto.getAddress());
-        
-
-        cusrepo.save(customer);
-
 
         try {
      
         // Membership Logic
 
-        if (Boolean.TRUE.equals(cusdto.getMembershipEnabled())) {
+        if (Boolean.TRUE.equals(cusdto.getMembership_enabled())) {
 
-            if (cusdto.getMembershipId() == null) {
+            if (cusdto.getMembership_id() == null) {
                 return ResponseEntity.badRequest().body( new MessageResponse("Membership Id is required when enabling membership"));
             }
             
 
-            Optional<Membership> membership = membershipRepository.findByIdAndIsActive(cusdto.getMembershipId(), 1);
-
-            if(membership==null) {
+            Optional<Membership> membership = membershipRepository.findByIdAndIsActive(cusdto.getMembership_id(), 1);
+                        
+            if(membership==null || !membership.isPresent()) {
             	return ResponseEntity.ok(new MessageResponse("Active Membership not found"));
             }
             
@@ -158,6 +149,16 @@ public class CustomerServiceImpl implements CustomerService  {
         	System.out.println("MemberShip Exception :"+e.getMessage());
 //        	return ResponseEntity.ok(new MessageResponse(e.getMessage()));
         }
+        
+        //finally save the customer
+        customer.setBusiness_unit_id(cusdto.getBusiness_unit_id());
+        customer.setName(cusdto.getName());
+        customer.setMobile(cusdto.getMobile());
+        customer.setEmail(cusdto.getEmail());
+        customer.setAddress(cusdto.getAddress());
+        
+
+        cusrepo.save(customer);
         
         
         if(isNewCustomer) {

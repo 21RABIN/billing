@@ -19,9 +19,10 @@ public class BusinessUnitServiceImpl implements BusinessUnitService {
 	
 	 //  Create and Update BusinessUnit
     public ResponseEntity<?> createUpdateBunit(BusinessUnitDTO bunitdto) {
+    
     	
         // CREATE
-        if (bunitdto.getId() == null) {
+        if (bunitdto.getId()== null) {
         	
         	
         	if(bunitrepo.existsByName(bunitdto.getName())) {
@@ -51,13 +52,13 @@ public class BusinessUnitServiceImpl implements BusinessUnitService {
 
             if (type == BusinessType.FRANCHISE) {
 
-                if (bunitdto.getParentId() == null) {
+                if (bunitdto.getParent_id() == null) {
                 	
                 	return ResponseEntity.badRequest().body(new MessageResponse("Parent ID required for FRANCHISE"));
                     
                 }
 
-                BusinessUnit parent = bunitrepo.findById(bunitdto.getParentId())
+                BusinessUnit parent = bunitrepo.findById(bunitdto.getParent_id())
                         .orElse(null);
 
                 if (parent == null || parent.getType() != BusinessType.MAIN) {
@@ -71,10 +72,10 @@ public class BusinessUnitServiceImpl implements BusinessUnitService {
             BusinessUnit unit = BusinessUnit.builder()
                     .name(bunitdto.getName())
                     .type(type)
-                    .parentId(bunitdto.getParentId())
+                    .parent_id(bunitdto.getParent_id())
                     .address(bunitdto.getAddress())
                     .mobile(bunitdto.getMobile())
-                    .gstIn(bunitdto.getGstIn())
+                    .gst_in(bunitdto.getGst_in())
                     .isActive(true)
                     .build();
 
@@ -86,6 +87,11 @@ public class BusinessUnitServiceImpl implements BusinessUnitService {
         
         
         else {
+        	
+        	
+        	if (bunitrepo.existsByMobileAndIdNot(bunitdto.getMobile(), bunitdto.getId())) {
+				return ResponseEntity.badRequest().body(new MessageResponse("Business Unit Mobile already available!"));
+			}
 
             BusinessUnit bunit = bunitrepo.findById(bunitdto.getId())
                     .orElse(null);
@@ -104,8 +110,8 @@ public class BusinessUnitServiceImpl implements BusinessUnitService {
             if (bunitdto.getMobile() != null)
             	bunit.setMobile(bunitdto.getMobile());
 
-            if (bunitdto.getGstIn() != null)
-            	bunit.setGstIn(bunitdto.getGstIn());
+            if (bunitdto.getGst_in() != null)
+            	bunit.setGst_in(bunitdto.getGst_in());
 
             if (bunitdto.getIsActive() != null)
             	bunit.setIsActive(bunitdto.getIsActive());

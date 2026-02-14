@@ -7,9 +7,9 @@ public class ProductDTO {
 	
 	 private Long id;   // null = create
 	    private String name;
-	    private Long businessUnitId;
+	    private Long business_unit_id;
 	    private String sku;
 	    private Double price;
-	    private Double gstPercent;
+	    private Double gst_percent;
 	    private Boolean isActive;
 }

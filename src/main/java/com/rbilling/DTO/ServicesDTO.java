@@ -7,9 +7,9 @@ public class ServicesDTO {
 
 	
 	private Long id;   // null = create
-	private Integer businessUnitId;
+	private Integer business_unit_id;
     private String name;
-    private Double basePrice;
-    private Double gstPercent;
+    private Double base_price;
+    private Double gst_percent;
     private Boolean isActive;
 }

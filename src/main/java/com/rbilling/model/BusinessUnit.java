@@ -36,25 +36,25 @@ public class BusinessUnit {
     @Enumerated(EnumType.STRING)
     private BusinessType type;
 
-    @Column(name="parent_id")
-    private Long parentId;
+  
+    private Long parent_id;
 
     @Column(name = "is_active")
     private Boolean isActive = true;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+
+    private LocalDateTime created_at;
 
     private String address;
 
     private String mobile;
 
-    @Column(name = "gst_in")
-    private String gstIn;
+
+    private String gst_in;
 
     @PrePersist
     public void onCreate() {
-        this.createdAt = LocalDateTime.now();
+        this.created_at = LocalDateTime.now();
         if (this.isActive == null) {
             this.isActive = true;
         }

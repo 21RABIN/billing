@@ -20,13 +20,19 @@ public class ProductServiceImpl implements ProductService {
 
 		// ================= CREATE =================
 		if (proddto.getId() == null) {
+			
+			if(prodrepo.existsByName(proddto.getName())) {
+				
+				return ResponseEntity.badRequest().body(new MessageResponse("Product Name Alredy Exist"));
+			}
+			
 
 			Product product = Product.builder()
-                    .businessUnitId(proddto.getBusinessUnitId())
+                    .businessUnitId(proddto.getBusiness_unit_id())
                     .name(proddto.getName())
                     .sku(proddto.getSku())
                     .price(proddto.getPrice())
-                    .gstPercent(proddto.getGstPercent())
+                    .gstPercent(proddto.getGst_percent())
                     .isActive(true)
                     .build();
 			prodrepo.save(product);
@@ -37,7 +43,7 @@ public class ProductServiceImpl implements ProductService {
 		// ================= UPDATE =================
 		else {
 
-			Product product = prodrepo.findByIdAndBusinessUnitId(proddto.getId(), proddto.getBusinessUnitId());
+			Product product = prodrepo.findByIdAndBusinessUnitId(proddto.getId(), proddto.getBusiness_unit_id());
 
 			if (product == null) {
 				return ResponseEntity.badRequest().body(new MessageResponse("Product not found or unauthorized"));
@@ -52,8 +58,8 @@ public class ProductServiceImpl implements ProductService {
 			if (proddto.getPrice() != null)
 				product.setPrice(proddto.getPrice());
 
-			if (proddto.getGstPercent() != null)
-				product.setGstPercent(proddto.getGstPercent());
+			if (proddto.getGst_percent() != null)
+				product.setGstPercent(proddto.getGst_percent());
 
 			if (proddto.getIsActive() != null)
 				product.setIsActive(proddto.getIsActive());

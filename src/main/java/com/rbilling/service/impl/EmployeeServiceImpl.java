@@ -51,11 +51,11 @@ public class EmployeeServiceImpl implements EmployeeService {
 		// Create Employee
 		if (empdto.getId() == null) {
 
-			if (empdto.getBusinessUnitId() == null) {
+			if (empdto.getBusiness_unit_id() == null) {
 				return ResponseEntity.badRequest().body(new MessageResponse("Business Unit is required"));
 			}
 
-			BusinessUnit unit = bunitrepo.findById(empdto.getBusinessUnitId()).orElse(null);
+			BusinessUnit unit = bunitrepo.findById(empdto.getBusiness_unit_id()).orElse(null);
 
 			if (unit == null) {
 				return ResponseEntity.badRequest().body(new MessageResponse("Invalid Business Unit"));
@@ -73,15 +73,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 			}
 
 			Employee employee = new Employee();
-			employee.setUserId(empdto.getUserId());
-			employee.setBusinessUnitId(empdto.getBusinessUnitId());
-			employee.setName(empdto.getName());
-			employee.setMobile(empdto.getMobile());
-			employee.setEmail(empdto.getEmail());
-			employee.setAddress(empdto.getAddress());
-			employee.setIsActive(true);
-
-			emprepo.save(employee);
 			
 			//Login Credential Adding
 			Set<Role> roles = new HashSet<>();
@@ -92,9 +83,25 @@ public class EmployeeServiceImpl implements EmployeeService {
 			roles.add(specific_role);
 			
 			// Create new user's account
-			User user = new User(employee.getEmail(),encoder.encode(employee.getMobile()),employee.getEmail(),employee.getMobile());
+			User user = new User(empdto.getEmail(),encoder.encode(empdto.getMobile()),empdto.getEmail(),empdto.getMobile());
 			user.setRoles(roles);
 			userRepository.save(user);
+			
+			System.out.println("user.getId() :"+user.getId());
+			
+			employee.setUser_id(user.getId());
+			employee.setBusiness_unit_id(empdto.getBusiness_unit_id());
+			employee.setName(empdto.getName());
+			employee.setMobile(empdto.getMobile());
+			employee.setEmail(empdto.getEmail());
+			employee.setAddress(empdto.getAddress());
+			employee.setIsActive(true);
+
+			
+			
+			emprepo.save(employee);
+			
+			
 			 
 			
 
@@ -104,10 +111,11 @@ public class EmployeeServiceImpl implements EmployeeService {
 		}
 
 		// Update Employee
-		else {
-
+		else {		
+				
 			Employee employee = emprepo.findById(empdto.getId()).orElse(null);
 
+			
 			if (employee == null) {
 				return ResponseEntity.badRequest().body(new MessageResponse("Employee not found"));
 			}
@@ -122,7 +130,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 				}
 
 			}
-
+			
 			if (empdto.getName() != null)
 				employee.setName(empdto.getName());
 
@@ -132,28 +140,22 @@ public class EmployeeServiceImpl implements EmployeeService {
 			if (empdto.getEmail() != null)
 				employee.setEmail(empdto.getEmail());
 			
-			if (empdto.getBusinessUnitId() != null)
-				employee.setBusinessUnitId(empdto.getBusinessUnitId());
+			if (empdto.getBusiness_unit_id() != null)
+				employee.setBusiness_unit_id(empdto.getBusiness_unit_id());
 
 			if (empdto.getAddress() != null)
 				employee.setAddress(empdto.getAddress());
-
-			if (empdto.getBusinessUnitId() != null)
-				employee.setBusinessUnitId(empdto.getBusinessUnitId());
-
+			
 			if (empdto.getIsActive() != null)
 				employee.setIsActive(empdto.getIsActive());
-
-			emprepo.save(employee);
-			
-			//Login Credential Update	
 				
-			User user = userRepository.findById(empdto.getUserId())
+			emprepo.save(employee);
+				
+			User user = userRepository.findById(employee.getUser_id())
 			        .orElseThrow(() -> new RuntimeException("Error: User not found."));
-			
-
+		
 			// Check if email already exists for another user
-			if (userRepository.existsByEmailAndIdNot(empdto.getEmail(), empdto.getUserId())) {
+			if (userRepository.existsByEmailAndIdNot(empdto.getEmail(), empdto.getUser_id())) {
 			    return ResponseEntity.badRequest().body(new MessageResponse("User email already available!"));
 			}
 
@@ -162,7 +164,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 			user.setPassword(encoder.encode(employee.getMobile())); // encoding mobile as password
 			user.setRaw_password(employee.getMobile());
 			user.setUsername(employee.getEmail());
-
+				
 			// Save changes
 			userRepository.save(user);
 

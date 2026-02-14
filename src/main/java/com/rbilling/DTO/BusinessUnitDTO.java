@@ -7,9 +7,9 @@ public class BusinessUnitDTO {
 		private Long id;          // Required for update, null for create
 	    private String name;
 	    private String type;      // MAIN / FRANCHISE
-	    private Long parentId;    // Required only for FRANCHISE
+	    private Long parent_id;    // Required only for FRANCHISE
 	    private String address;
 	    private String mobile;
-	    private String gstIn;
+	    private String gst_in;
 	    private Boolean isActive;
 }

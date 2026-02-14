@@ -30,6 +30,7 @@ public class CustomerController {
 	@Autowired
 	CustomerService customerService;
 	
+
 	@Autowired
 	 CustomerRepository cusrepo;
 
@@ -37,6 +38,12 @@ public class CustomerController {
     public ResponseEntity<?> createUpdateCustomer(@RequestBody CustomerDTO cusdto) {
         return customerService.createUpdateCustomer(cusdto);
     }
+    
+    @GetMapping("/all")
+	public ResponseEntity<List<Map<String, Object>>> getAllCustomer() {
+		List<Map<String, Object>> customer = cusrepo.getAllCustomer();
+		return ResponseEntity.ok(customer);
+	}
     
  
 }

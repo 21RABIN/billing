@@ -29,8 +29,8 @@ public class Employee {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name="user_id")
-    private Long userId;
+   
+    private Long user_id;
 
     private String name;
 
@@ -40,8 +40,8 @@ public class Employee {
 
     private String address;
 
-    @Column(name="business_unit_id")
-    private Long businessUnitId;
+   
+    private Long business_unit_id;
 
     @Column(name = "is_active")
     private Boolean isActive = true;

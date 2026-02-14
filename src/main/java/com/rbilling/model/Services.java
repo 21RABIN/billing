@@ -26,16 +26,16 @@ public class Services {
 	    @GeneratedValue(strategy = GenerationType.IDENTITY)
 	    private Long id;
 
-		 @Column(name="business_unit_id")
+		@Column(name="business_unit_id")
 	    private Integer businessUnitId;
 
 	    private String name;
 	    
-	    @Column(name="base_price")
-	    private Double basePrice;
+	  
+	    private Double base_price;
 
-	    @Column(name="gst_percent")
-	    private Double gstPercent;
+
+	    private Double gst_percent;
 
 	    @Column(name="is_active")
 	    private Boolean isActive = true;
