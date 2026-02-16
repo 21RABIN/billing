@@ -34,13 +34,13 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 	@Autowired
 	EmployeeRepository emprepo;
-	
+
 	@Autowired
 	UserRepository userRepository;
-	
+
 	@Autowired
 	PasswordEncoder encoder;
-	
+
 	@Autowired
 	RoleRepository roleRepository;
 
@@ -73,22 +73,24 @@ public class EmployeeServiceImpl implements EmployeeService {
 			}
 
 			Employee employee = new Employee();
-			
-			//Login Credential Adding
+
+			// Login Credential Adding
 			Set<Role> roles = new HashSet<>();
-			
-			Role specific_role = (Role) roleRepository.findByRole(ERole.ROLE_EMPLOYEE).orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-			
-			System.out.println("specific_role :"+specific_role);
+
+			Role specific_role = (Role) roleRepository.findByRole(ERole.ROLE_EMPLOYEE)
+					.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+
+			System.out.println("specific_role :" + specific_role);
 			roles.add(specific_role);
-			
+
 			// Create new user's account
-			User user = new User(empdto.getEmail(),encoder.encode(empdto.getMobile()),empdto.getEmail(),empdto.getMobile());
+			User user = new User(empdto.getEmail(), encoder.encode(empdto.getMobile()), empdto.getEmail(),
+					empdto.getMobile());
 			user.setRoles(roles);
 			userRepository.save(user);
-			
-			System.out.println("user.getId() :"+user.getId());
-			
+
+			System.out.println("user.getId() :" + user.getId());
+
 			employee.setUser_id(user.getId());
 			employee.setBusiness_unit_id(empdto.getBusiness_unit_id());
 			employee.setName(empdto.getName());
@@ -97,25 +99,16 @@ public class EmployeeServiceImpl implements EmployeeService {
 			employee.setAddress(empdto.getAddress());
 			employee.setIsActive(true);
 
-			
-			
 			emprepo.save(employee);
-			
-			
-			 
-			
-
-			
 
 			return ResponseEntity.ok(new MessageResponse("Employee Created Successfully"));
 		}
 
 		// Update Employee
-		else {		
-				
+		else {
+
 			Employee employee = emprepo.findById(empdto.getId()).orElse(null);
 
-			
 			if (employee == null) {
 				return ResponseEntity.badRequest().body(new MessageResponse("Employee not found"));
 			}
@@ -130,7 +123,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 				}
 
 			}
-			
+
 			if (empdto.getName() != null)
 				employee.setName(empdto.getName());
 
@@ -139,24 +132,24 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 			if (empdto.getEmail() != null)
 				employee.setEmail(empdto.getEmail());
-			
+
 			if (empdto.getBusiness_unit_id() != null)
 				employee.setBusiness_unit_id(empdto.getBusiness_unit_id());
 
 			if (empdto.getAddress() != null)
 				employee.setAddress(empdto.getAddress());
-			
+
 			if (empdto.getIsActive() != null)
 				employee.setIsActive(empdto.getIsActive());
-				
+
 			emprepo.save(employee);
-				
+
 			User user = userRepository.findById(employee.getUser_id())
-			        .orElseThrow(() -> new RuntimeException("Error: User not found."));
-		
+					.orElseThrow(() -> new RuntimeException("Error: User not found."));
+
 			// Check if email already exists for another user
 			if (userRepository.existsByEmailAndIdNot(empdto.getEmail(), empdto.getUser_id())) {
-			    return ResponseEntity.badRequest().body(new MessageResponse("User email already available!"));
+				return ResponseEntity.badRequest().body(new MessageResponse("User email already available!"));
 			}
 
 			// Update fields
@@ -164,10 +157,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 			user.setPassword(encoder.encode(employee.getMobile())); // encoding mobile as password
 			user.setRaw_password(employee.getMobile());
 			user.setUsername(employee.getEmail());
-				
+
 			// Save changes
 			userRepository.save(user);
-
 
 			return ResponseEntity.ok(new MessageResponse("Employee Updated Successfully"));
 		}

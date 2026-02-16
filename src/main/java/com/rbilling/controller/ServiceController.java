@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.rbilling.DTO.ServicesDTO;
@@ -36,8 +37,11 @@ public class ServiceController {
     }
 
 	@GetMapping("/all")
-	public ResponseEntity<List<Map<String, Object>>> getAllServices() {
-		List<Map<String, Object>> products = servicerepo.getAllServices();
-		return ResponseEntity.ok(products);
+	public ResponseEntity<List<Map<String, Object>>> getAllServices(@RequestParam Long bunitid) {
+		List<Map<String, Object>> service = servicerepo.getAllServices(bunitid);
+		return ResponseEntity.ok(service);
 	}
+	
+
+
 }

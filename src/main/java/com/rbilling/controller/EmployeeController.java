@@ -34,7 +34,7 @@ public class EmployeeController {
 	 @PreAuthorize("hasRole('ADMIN')")  //Admin role Only Access this Api
 	public ResponseEntity<?> createUpdateEmp(@RequestBody EmployeeDTO empdto) {
 
-		System.out.println("nsfajkn");
+	
 		return empservice.createUpdateEmp(empdto);
 	}
 
@@ -47,9 +47,13 @@ public class EmployeeController {
 	}
 
 	@GetMapping("/all")
-	public ResponseEntity<List<Map<String, Object>>> getAllEmployees() {
-		List<Map<String, Object>> employees = emprepo.getAllEmployees();
+	public ResponseEntity<List<Map<String, Object>>> getAllEmployees(@RequestParam Long bunitid) {
+		List<Map<String, Object>> employees = emprepo.getAllEmployees(bunitid);
 		return ResponseEntity.ok(employees);
 	}
+	
+	
+
+
 
 }

@@ -99,6 +99,7 @@ public class CustomerServiceImpl implements CustomerService  {
 
 			}
 			
+			
                     
         }
 
@@ -156,6 +157,7 @@ public class CustomerServiceImpl implements CustomerService  {
         customer.setMobile(cusdto.getMobile());
         customer.setEmail(cusdto.getEmail());
         customer.setAddress(cusdto.getAddress());
+        customer.setIsActive(cusdto.getIsActive());
         
 
         cusrepo.save(customer);

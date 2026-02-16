@@ -7,14 +7,6 @@ import com.rbilling.model.BusinessUnit;
 
 public interface BusinessUnitService {
 
-	
-
 	ResponseEntity<?> createUpdateBunit(BusinessUnitDTO bunitdto);
 
-	
-
-	
-	
-
-   
 }

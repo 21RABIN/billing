@@ -40,10 +40,11 @@ public class CustomerController {
     }
     
     @GetMapping("/all")
-	public ResponseEntity<List<Map<String, Object>>> getAllCustomer() {
-		List<Map<String, Object>> customer = cusrepo.getAllCustomer();
+	public ResponseEntity<List<Map<String, Object>>> getAllCustomer(@RequestParam Long bunitid) {
+		List<Map<String, Object>> customer = cusrepo.getAllCustomer(bunitid);
 		return ResponseEntity.ok(customer);
 	}
     
+
  
 }

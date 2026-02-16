@@ -1,5 +1,7 @@
 package com.rbilling.model;
 
+import java.time.LocalDateTime;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -7,28 +9,31 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import lombok.Builder;
 import lombok.Data;
 
 @Entity
-@Table(name = "customers")
+@Table(name = "suppliers")
 @Data
-
-public class Customer {
+public class Supplier {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long business_unit_id;
-    private String name;
-    private String mobile;
+    @Column(name="business_unit_id")
+    private Long businessUnitId;
+
+    
+    private String supplier_name;
+
+    private String contact_person;
+    private String phone;
     private String email;
     private String address;
+    private String gst_number;
 
-    @Column(name="is_active")
     private Boolean isActive = true;
-    
-    private Boolean isDelete = false;
-    
+
+    private LocalDateTime createdAt = LocalDateTime.now();
 }
+

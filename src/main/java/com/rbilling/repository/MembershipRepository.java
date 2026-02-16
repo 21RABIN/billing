@@ -14,8 +14,6 @@ import com.rbilling.model.Membership;
 @Repository
 public interface MembershipRepository extends JpaRepository<Membership, Long> {
 
-//	Membership findByIdAndIsActive(Long membershipId, int i);
-
     Optional<Membership> findByIdAndIsActive(Long id, Integer isActive);
 
     @Query(value = "select * from memberships ",nativeQuery = true)

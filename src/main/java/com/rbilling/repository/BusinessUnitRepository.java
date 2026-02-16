@@ -17,9 +17,11 @@ public interface BusinessUnitRepository extends JpaRepository<BusinessUnit, Long
 	boolean existsByMobile(String mobile);
 
 	
-	@Query(value = "SELECT bu.*,COALESCE(parent.name, 'N/A') AS parent_name FROM business_units bu LEFT JOIN business_units parent ON bu.parent_id = parent.id",nativeQuery = true)
-	List<Map<String, Object>> getAllBusinessUnits();
+	@Query(value = "SELECT bu.*,COALESCE(parent.name, 'N/A') AS parent_name FROM business_units bu LEFT JOIN business_units parent ON bu.parent_id = parent.id where (:bunitid=0 OR parent.id=:bunitid)",nativeQuery = true)
+	List<Map<String, Object>> getAllBusinessUnits(Long bunitid);
 
 	boolean existsByMobileAndIdNot(String mobile, Long id);
+
+
 	
 }

@@ -1,5 +1,7 @@
 package com.rbilling.model;
 
+import java.math.BigDecimal;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -34,6 +36,8 @@ public class Product {
     private String sku;
 
     private Double price;
+    
+    private BigDecimal selling_price;
 
     @Column(name="gst_percent")
     private Double gstPercent;

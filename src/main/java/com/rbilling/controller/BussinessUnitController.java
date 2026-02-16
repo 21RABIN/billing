@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.rbilling.DTO.BusinessUnitDTO;
@@ -39,26 +40,21 @@ public class BussinessUnitController {
 		return bunitservice.createUpdateBunit(bunitdto);
 	}
 
-//	@GetMapping("/getbusinessunit")
-//	public List<Map<String, Object>> getbusinessunit() {
-//
-//		try {
-//
-//			return bunitrepo.findAll();
-//
-//		} catch (Exception e) {
-//			// TODO: handle exception
-//		}
-//
-//		return null;
-//	}
+
 
 	@GetMapping("/all")
-	public ResponseEntity<List<Map<String, Object>>> getAllBusinessUnits() {
+	public ResponseEntity<List<Map<String, Object>>> getAllBusinessUnits(@RequestParam Long bunitid) {
 		
-		List<Map<String, Object>> units = bunitrepo.getAllBusinessUnits();
+		List<Map<String, Object>> buunits = bunitrepo.getAllBusinessUnits(bunitid);
 		
-		return ResponseEntity.ok(units);
+		return ResponseEntity.ok(buunits);
 	}
+	
+
+	
+	
+	
+	
+	
 
 }

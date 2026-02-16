@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.rbilling.DTO.ProductDTO;
@@ -28,16 +29,18 @@ public class ProductController {
 	ProductRepository prodrepo;
 	
 	@PostMapping("/create")//Both Api Create and Update 
-//    @PreAuthorize("hasRole('ADMIN','FRANCHESE')")
+//    @PreAuthorize("hasRole('ADMIN','FRANCHESE')")  //ADMIN AND FRANCHESE ROLE ONLY ACESS THIS API
     public ResponseEntity<?> createUpdateProduct(@RequestBody ProductDTO proddto) {
         
         return prodservice.createUpdateProduct(proddto);
     }
 	
 	@GetMapping("/all")
-	public ResponseEntity<List<Map<String, Object>>> getAllProducts() {
-		List<Map<String, Object>> products = prodrepo.getAllProducts();
+	public ResponseEntity<List<Map<String, Object>>> getAllProducts(@RequestParam Long bunitid) {
+		List<Map<String, Object>> products = prodrepo.getAllProducts(bunitid);
 		return ResponseEntity.ok(products);
 	}
+	
+
 
 }

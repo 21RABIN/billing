@@ -13,7 +13,5 @@ public interface CustomerMembershipRepository extends JpaRepository<CustomerMemb
 
 	Optional<CustomerMembership> findByCustomerId(Long id);
 
-//	Optional<Customer> findByCustomerId(Long id);
 
-//    Optional<CustomerMembership> findByCustomerId(Long customerId);
 }
