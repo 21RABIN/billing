@@ -26,13 +26,13 @@ public class CustomerMembership {
     private Long customerId;
     
     @Column(name="membership_id")
-    private Long membershipId;
+    private Long membership_id;
 
     @Column(name="start_date")
-    private LocalDate startDate;
+    private LocalDate start_date;
     
     @Column(name="end_date")
-    private LocalDate endDate;
+    private LocalDate end_date;
 
     @Enumerated(EnumType.STRING)
     private Status status;

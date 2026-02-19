@@ -1,50 +1,47 @@
 package com.rbilling.model;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.PrePersist;
 import javax.persistence.Table;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+
 @Entity
-@Table(name = "memberships")
+@Table(name = "payments")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class Membership {
-
+public class Payment {
+	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	private String name;
+	private Long invoice_id;
+	 private BigDecimal amount;
+    private String mode; // CASH, CARD, UPI, BANK
+    private String reference_no;
+    
+    private LocalDateTime createdAt;
+    
+    private LocalDate payment_date;
 
-	@Column(name = "validity_days")
-	private Integer validityDays;
+    @PrePersist
+    public void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        
+    }
 
-	@Column(name = "discount_type")
-	private String discountType;
-	
-	@Column(name = "discount_value")
-	private BigDecimal discountValue;
-	
-	
-	@Column(name = "is_active")
-	private Boolean isActive;
-
-
-
-	
 }
-

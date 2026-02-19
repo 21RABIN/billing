@@ -1,4 +1,4 @@
-package com.rbilling.model;
+ package com.rbilling.model;
 
 public enum BusinessType {
 	MAIN,

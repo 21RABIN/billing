@@ -10,44 +10,34 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "products")
+@Table(name = "service_membership_price")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class Product {
+public class ServiceMembershipPrice {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name="business_unit_id")
-    private Long businessUnitId;
+    @Column(name = "membership_id", nullable = false)
+    private Long membershipId;
 
-    private String name;
+    @Column(name = "service_id", nullable = false)
+    private Long service_id;
 
-    private String sku;
+    @Column(name = "special_price", precision = 10, scale = 2)
+    private BigDecimal special_price;
 
-    private Double price;
-    
-    private BigDecimal selling_price;
-    
+    @Column(name = "discount_percent", precision = 5, scale = 2)
     private BigDecimal discount_percent;
 
-    @Column(name="gst_percent")
-    private BigDecimal gst_percent;
-    
-    private Boolean track_batch=true;
 
-    @Column(name="is_active")
-    private Boolean isActive = true;
-    
-    
 }
+

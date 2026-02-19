@@ -36,6 +36,8 @@ public class Services {
 
 
 	    private Double gst_percent;
+	    
+	    private String sac_code;
 
 	    @Column(name="is_active")
 	    private Boolean isActive = true;

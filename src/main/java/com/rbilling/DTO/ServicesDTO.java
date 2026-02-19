@@ -10,6 +10,7 @@ public class ServicesDTO {
 	private Integer business_unit_id;
     private String name;
     private Double base_price;
+    private String sac_code;
     private Double gst_percent;
     private Boolean isActive;
 }

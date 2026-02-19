@@ -13,7 +13,9 @@ public class ProductDTO {
 	    private String sku;
 	    private Double price;
 	    private BigDecimal selling_price;
-	    private Double gst_percent;
+	    private BigDecimal discount_percent;
+	    private BigDecimal gst_percent;
+	    private Boolean track_batch;
 	    private Boolean isActive;
 	   private ProductBatchDTO batch;
 	   

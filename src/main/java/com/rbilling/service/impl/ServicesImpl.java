@@ -26,6 +26,7 @@ public class ServicesImpl implements ServicesService {
                     .name(servdto.getName())
                     .base_price(servdto.getBase_price())
                     .gst_percent(servdto.getGst_percent())
+                    .sac_code(servdto.getSac_code())
                     .isActive(true)
                     .build();
 
@@ -50,6 +51,9 @@ public class ServicesImpl implements ServicesService {
 
 			if (servdto.getGst_percent() != null)
 				service.setGst_percent(servdto.getGst_percent());
+			
+			if (servdto.getSac_code() != null)
+				service.setSac_code(servdto.getSac_code());
 
 			if (servdto.getIsActive() != null)
 				service.setIsActive(true);

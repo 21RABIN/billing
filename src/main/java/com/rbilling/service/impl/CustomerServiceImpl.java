@@ -127,9 +127,9 @@ public class CustomerServiceImpl implements CustomerService  {
             CustomerMembership cm = customerMembershipRepository.findByCustomerId(customer.getId()).orElse(new CustomerMembership());
 
             cm.setCustomerId(customer.getId());
-            cm.setMembershipId(membership.get().getId());
-            cm.setStartDate(startDate);
-            cm.setEndDate(endDate);
+            cm.setMembership_id(membership.get().getId());
+            cm.setStart_date(startDate);
+            cm.setEnd_date(endDate);
             cm.setStatus(CustomerMembership.Status.ACTIVE);
 
             customerMembershipRepository.save(cm);

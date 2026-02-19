@@ -14,6 +14,11 @@ public interface ServicesRepository extends JpaRepository<Services, Long> {
 	
 	@Query(value = "SELECT serv.*,bunit.name as business_name FROM services serv left join business_units bunit on bunit.id=serv.business_unit_id where (:bunitid=0 OR serv.business_unit_id=:bunitid)", nativeQuery = true)
 	List<Map<String, Object>> getAllServices(Long bunitid);
+	
+	
+
+	 @Query(value = "select * from service_membership_price ",nativeQuery = true)
+	List<Map<String, Object>> getAllServMemsPrice();
 
 
 

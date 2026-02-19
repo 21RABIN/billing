@@ -41,7 +41,8 @@ public class ProductServiceImpl implements ProductService {
                     .sku(proddto.getSku())
                     .price(proddto.getPrice())
                     .selling_price(proddto.getSelling_price())
-                    .gstPercent(proddto.getGst_percent())
+                    .discount_percent(proddto.getDiscount_percent())
+                    .gst_percent(proddto.getGst_percent())
                     .isActive(true)
                     .build();
 			prodrepo.save(product);
@@ -85,10 +86,18 @@ public class ProductServiceImpl implements ProductService {
 				product.setPrice(proddto.getPrice());
 
 			if (proddto.getGst_percent() != null)
-				product.setGstPercent(proddto.getGst_percent());
+				product.setGst_percent(proddto.getGst_percent());
 
 			if (proddto.getIsActive() != null)
 				product.setIsActive(proddto.getIsActive());
+			
+			if (proddto.getDiscount_percent() != null)
+				product.setDiscount_percent(proddto.getDiscount_percent());
+			
+			if (proddto.getSelling_price() != null)
+				product.setSelling_price(proddto.getSelling_price());
+			
+			
 
 			prodrepo.save(product);
 			
