@@ -13,7 +13,7 @@ public class ServiceMappingDTO {
     private BigDecimal discount_percent=BigDecimal.ZERO;
     
     
-    //
+    //service 
     
     private Long id;
     private Long business_unit_id;

@@ -20,7 +20,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>{
 
 	boolean existsByMobileAndIdNot(String mobile, Long id);
 
-	@Query(value = "select bunit.* from business_units bunit left join employees emp on bunit.id=emp.business_unit_id where emp.id=:empid",nativeQuery = true)
+	@Query(value = "select bunit.* from business_units bunit left join employees emp on bunit.id=emp.business_unit_id where(:empid=0 or emp.id=:empid)",nativeQuery = true)
 	List<Map<String, Object>> getEmployeeFranchise(long empid);
 
 	@Query(value = "SELECT emp.*,bunit.name as business_name FROM employees emp left join business_units bunit on bunit.id=emp.business_unit_id  where (:bunitid=0 OR emp.business_unit_id=:bunitid)", nativeQuery = true) 

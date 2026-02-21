@@ -38,7 +38,7 @@ public class BusinessUnitServiceImpl implements BusinessUnitService {
 			BusinessType type;
 
 			try {
-				type = BusinessType.valueOf(bunitdto.getType().toUpperCase());
+				type = bunitdto.getType();
 			} catch (Exception e) {
 
 				return ResponseEntity.badRequest().body(new MessageResponse("Invalid business type"));
@@ -89,6 +89,12 @@ public class BusinessUnitServiceImpl implements BusinessUnitService {
 
 			if (bunitdto.getAddress() != null)
 				bunit.setAddress(bunitdto.getAddress());
+			
+			if (bunitdto.getType() != null)
+				bunit.setType(bunitdto.getType());
+			
+			if(bunitdto.getParent_id()!=null)
+				bunit.setParent_id(bunitdto.getParent_id());
 
 			if (bunitdto.getMobile() != null)
 				bunit.setMobile(bunitdto.getMobile());

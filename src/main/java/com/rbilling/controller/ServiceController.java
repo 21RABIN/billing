@@ -1,7 +1,9 @@
 package com.rbilling.controller;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -39,7 +41,14 @@ public class ServiceController {
 	@GetMapping("/all")
 	public ResponseEntity<List<Map<String, Object>>> getAllServices(@RequestParam Long bunitid) {
 		List<Map<String, Object>> service = servicerepo.getAllServices(bunitid);
-		return ResponseEntity.ok(service);
+		
+
+		List<Map<String, Object>> enrichedProducts = service.stream().map(p -> {
+			Map<String, Object> mutable = new HashMap<>(p);
+			mutable.put("type", "SERVICE");
+			return mutable;
+		}).collect(Collectors.toList());
+		return ResponseEntity.ok(enrichedProducts);
 	}
 	
 	

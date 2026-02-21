@@ -7,6 +7,7 @@ import java.util.Optional;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.rbilling.DTO.RetailInvoiceRequestDTO;
@@ -16,12 +17,15 @@ import com.rbilling.model.InvoiceItem;
 import com.rbilling.model.Payment;
 import com.rbilling.model.Product;
 import com.rbilling.model.ProductBatch;
+import com.rbilling.model.Services;
 import com.rbilling.repository.CustomerRepository;
 import com.rbilling.repository.InvoiceItemRepository;
 import com.rbilling.repository.InvoiceRepository;
 import com.rbilling.repository.PaymentRepository;
 import com.rbilling.repository.ProductBatchRepository;
 import com.rbilling.repository.ProductRepository;
+import com.rbilling.repository.ServicesRepository;
+import com.rbilling.responce.MessageResponse;
 import com.rbilling.service.RetailBillingService;
 
 import lombok.RequiredArgsConstructor;
@@ -36,123 +40,154 @@ public class RetailBillingServiceImpl implements RetailBillingService {
 	@Autowired
 	ProductBatchRepository batchRepo;
 	@Autowired
-    InvoiceRepository invoiceRepo;
+	InvoiceRepository invoiceRepo;
 	@Autowired
-    InvoiceItemRepository itemRepo;
+	InvoiceItemRepository itemRepo;
 	@Autowired
-    PaymentRepository paymentRepo;
-    @Autowired
-    private CustomerRepository cusrepo;
+	PaymentRepository paymentRepo;
+	@Autowired
+	private CustomerRepository cusrepo;
+	@Autowired
+	ServicesRepository servrepo;
 
-    public String createRetailInvoice(RetailInvoiceRequestDTO request) {
+	public ResponseEntity<?> createRetailInvoice(RetailInvoiceRequestDTO request) {
 
-        BigDecimal totalTax = BigDecimal.ZERO;
-        BigDecimal grossAmount = BigDecimal.ZERO;
-        
-        Optional<Customer> cus=cusrepo.findById(request.getCustomer_id());
+		BigDecimal totalTax = BigDecimal.ZERO;
+		BigDecimal grossAmount = BigDecimal.ZERO;
 
-        // ✅ Create Invoice
-        Invoice invoice = new Invoice();
-        invoice.setBusiness_unit_id(cus.get().getBusiness_unit_id());
-        invoice.setCustomer_id(request.getCustomer_id());
-        invoice.setInvoice_date(LocalDate.now());
-        invoice.setStatus("ESTIMATE");
-        invoice.setBilled_by(request.getBilled_by());
+		Optional<Customer> cus = cusrepo.findById(request.getCustomer_id());
+		if (!cus.isPresent()) {
+			return ResponseEntity.badRequest().body(new MessageResponse("Customer Not Found"));
+		}
+		// Create Invoice
+		Invoice invoice = new Invoice();
+		invoice.setBusiness_unit_id(cus.get().getBusiness_unit_id());
+		invoice.setCustomer_id(request.getCustomer_id());
+		invoice.setInvoice_date(LocalDate.now());
+		invoice.setStatus(request.getStatus());
+		invoice.setBilled_by(request.getBilled_by());
 
-        invoice = invoiceRepo.save(invoice);
+		invoice = invoiceRepo.save(invoice);
 
-        // ✅ Loop Products
-        for (RetailInvoiceRequestDTO.ProductItemDTO item : request.getProductitems()) {
+		// Loop Products
+		for (RetailInvoiceRequestDTO.ProductItemDTO item : request.getProductitems()) {
+			
+		    BigDecimal price = BigDecimal.ZERO;
+		    BigDecimal gstPercent = BigDecimal.ZERO;
+		    String description = "";
+		    Long itemId = null;
 
-            Product product = productRepo.findById(item.getProduct_id())
-                    .orElseThrow(() -> new RuntimeException("Product not found"));
+		  
 
-            BigDecimal price = product.getSelling_price() != null
-                    ? product.getSelling_price()
-                    : BigDecimal.ZERO;
+			if(item.getItem_type().equalsIgnoreCase("PRODUCT")) {
+			Product product = productRepo.findById(item.getProduct_id())
+					.orElseThrow(() -> new RuntimeException("Product not found"));
+			
+			price = product.getSelling_price() != null ? product.getSelling_price() : BigDecimal.ZERO;
+	        gstPercent = product.getGst_percent() != null ? product.getGst_percent() : BigDecimal.ZERO;
+	        description = product.getName();
+	        itemId = product.getId();
+			
+			// Batch Handling
+			if (Boolean.TRUE.equals(product.getTrack_batch())) {
 
-            BigDecimal gstPercent = product.getGst_percent() != null
-                    ? product.getGst_percent()
-                    : BigDecimal.ZERO;
+				if (item.getBatch_id() == null) {
+					throw new RuntimeException("Batch required for this product");
+				}
 
-            BigDecimal quantity = BigDecimal.valueOf(item.getQuantity());
+				ProductBatch batch = batchRepo.findById(item.getBatch_id())
+						.orElseThrow(() -> new RuntimeException("Batch not found"));
 
-            BigDecimal lineAmount = price.multiply(quantity);
+				if (batch.getStock_qty() < item.getQuantity()) {
+					throw new RuntimeException("Insufficient stock");
+				}
 
-            BigDecimal tax = lineAmount
-                    .multiply(gstPercent)
-                    .divide(BigDecimal.valueOf(100));
-            
-            
+				batch.setStock_qty(batch.getStock_qty() - item.getQuantity());
+				batchRepo.save(batch);
+			}
+			}
+			
+			else if(item.getItem_type().equalsIgnoreCase("SERVICE")) {
+				  Services serv = servrepo.findById(item.getProduct_id())
+			                .orElseThrow(() -> new RuntimeException("Service not found"));
 
-            BigDecimal total = lineAmount.add(tax);
-            
+			        price = serv.getBase_price() != null ? serv.getBase_price() : BigDecimal.ZERO;
+			        gstPercent = serv.getGst_percent() != null ? serv.getGst_percent() : BigDecimal.ZERO;
+			        description = serv.getName();
+			        itemId = serv.getId();
+			}
+			  else {
+			        throw new RuntimeException("Invalid item type");
+			    }
+			
 
-            // ✅ Batch Handling
-            if (Boolean.TRUE.equals(product.getTrack_batch())) {
+//			BigDecimal price = product.getSelling_price() != null ? product.getSelling_price() : BigDecimal.ZERO;
+//
+//			BigDecimal gstPercent = product.getGst_percent() != null ? product.getGst_percent() : BigDecimal.ZERO;
 
-                if (item.getBatch_id() == null) {
-                    throw new RuntimeException("Batch required for this product");
-                }
+			BigDecimal quantity = BigDecimal.valueOf(item.getQuantity());
 
-                ProductBatch batch = batchRepo.findById(item.getBatch_id())
-                        .orElseThrow(() -> new RuntimeException("Batch not found"));
+			BigDecimal lineAmount = price.multiply(quantity);
 
-                if (batch.getStock_qty() < item.getQuantity()) {
-                    throw new RuntimeException("Insufficient stock");
-                }
+			BigDecimal tax = lineAmount.multiply(gstPercent).divide(BigDecimal.valueOf(100));
 
-                batch.setStock_qty(batch.getStock_qty() - item.getQuantity());
-                batchRepo.save(batch);
-            }
+			BigDecimal total = lineAmount.add(tax);
 
-            // ✅ Save Invoice Item
-            InvoiceItem invoiceItem = new InvoiceItem();
-            invoiceItem.setInvoice_id(invoice.getId());
-            invoiceItem.setItem_type("PRODUCT");
-            invoiceItem.setItem_id(product.getId());
-            invoiceItem.setDescription(product.getName());
-            invoiceItem.setQuantity(item.getQuantity());
-            invoiceItem.setGst_percent(gstPercent);
-            invoiceItem.setTax_amount(tax);
-            invoiceItem.setTotal_amount(total);
+			
+			// Save Invoice Item
+			InvoiceItem invoiceItem = new InvoiceItem();
+			invoiceItem.setInvoice_id(invoice.getId());
+			invoiceItem.setItem_type(item.getItem_type());
+			invoiceItem.setItem_id(itemId);
+			invoiceItem.setDescription(description);
+			invoiceItem.setQuantity(item.getQuantity());
+			invoiceItem.setGst_percent(gstPercent);
+			invoiceItem.setTax_amount(tax);
+			invoiceItem.setTotal_amount(total);
+			invoiceItem.setNet_amount(request.getPayment().getTotal_amount());
+			invoiceItem.setGross_amount(lineAmount);
+			invoiceItem.setPerformed_by(request.getBilled_by());
+			itemRepo.save(invoiceItem);
 
-            itemRepo.save(invoiceItem);
+			grossAmount = grossAmount.add(lineAmount);
+			totalTax = totalTax.add(tax);
+		}
 
-            grossAmount = grossAmount.add(lineAmount);
-            totalTax = totalTax.add(tax);
-        }
+		// Final Invoice Calculation
+		BigDecimal netAmount = grossAmount.add(totalTax);
 
-        // ✅ Final Invoice Calculation
-        BigDecimal netAmount = grossAmount.add(totalTax);
+		invoice.setGross_amount(grossAmount);
+		invoice.setTax_amount(request.getPayment().getTax_amount());// totalTax
+		invoice.setTotal_amount(request.getPayment().getTotal_amount());// netAmount
+		invoice.setNet_amount(request.getPayment().getTotal_amount());// netAmount
+//        invoice.setRound_off(BigDecimal.ZERO);
 
-        invoice.setGross_amount(grossAmount);
-        invoice.setTax_amount(totalTax);
-        invoice.setTotal_amount(netAmount);
-        invoice.setNet_amount(netAmount);
-        invoice.setRound_off(BigDecimal.ZERO);
+		// Payment Handling
+		if (request.getPayment() != null) {
 
-        // ✅ Payment Handling
-        if (request.getPayment() != null) {
+			Payment payment = new Payment();
 
-            Payment payment = new Payment();
-            payment.setInvoice_id(invoice.getId());
-            payment.setAmount(request.getPayment().getAmount());
-            payment.setMode(request.getPayment().getMode());
-            payment.setReference_no(request.getPayment().getReference_no());
-            payment.setPayment_date(LocalDate.now());
+			payment.setInvoice_id(invoice.getId());
+			payment.setAmount(request.getPayment().getPayment_amount());
+			payment.setMode(request.getPayment().getMode());
 
-            paymentRepo.save(payment);
+			payment.setPayment_date(LocalDate.now());
 
-            if (request.getPayment().getAmount().compareTo(netAmount) >= 0) {
-                invoice.setStatus("PAID");
-            } else {
-                invoice.setStatus("PARTIAL");
-            }
-        }
+			String refNo = ReferenceGenerator.generateReferenceNo();
+			payment.setReference_no(refNo);
 
-        invoiceRepo.save(invoice);
+			paymentRepo.save(payment);
 
-        return "Retail Invoice Created Successfully";
-    }
+			if (request.getPayment().getPayment_amount().compareTo(request.getPayment().getTotal_amount()) >= 0) {
+				invoice.setStatus("PAID");
+			} else {
+				invoice.setStatus("PARTIAL");
+			}
+		}
+
+		invoiceRepo.save(invoice);
+
+		return ResponseEntity.ok(new MessageResponse("Retail Invoice Created Successfully"));
+
+	}
 }

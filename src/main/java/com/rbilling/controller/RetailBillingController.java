@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,26 +16,20 @@ import com.rbilling.service.RetailBillingService;
 
 import lombok.RequiredArgsConstructor;
 
+@CrossOrigin(origins = "*", maxAge = 3600) 
 @RestController
-@RequestMapping("/api/retail")
+@RequestMapping("/api/v1/retail")
 @RequiredArgsConstructor
 public class RetailBillingController {
-	
+
 	@Autowired
-	 RetailBillingService billingService;
-	
-	  @PostMapping("/invoice")
-	    public ResponseEntity<?> createInvoice(@RequestBody RetailInvoiceRequestDTO request) {
+	RetailBillingService billingService;
 
-	        String message = billingService.createRetailInvoice(request);
+	@PostMapping("/billing")
+	public ResponseEntity<?> createInvoice(@RequestBody RetailInvoiceRequestDTO request) {
+		
+		return billingService.createRetailInvoice(request);
 
-	        Map<String, String> response = new HashMap<>(); 
-	        response.put("status", "SUCCESS"); 
-	        response.put("message", message);
-	        return ResponseEntity.ok(response);
-	        
-//	        return ResponseEntity.ok(Collections.singletonMap("message", message));
-
-	    }
+	}
 
 }

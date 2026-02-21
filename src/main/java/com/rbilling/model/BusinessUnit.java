@@ -42,7 +42,7 @@ public class BusinessUnit {
     @Column(name = "is_active")
     private Boolean isActive = true;
 
-
+    
     private LocalDateTime created_at;
 
     private String address;

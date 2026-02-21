@@ -8,6 +8,6 @@ public interface MembershipService {
 
 	ResponseEntity<?>  createOrUpdateMembership(MembershipDTO memsdto);
 
-	ResponseEntity<?> MapMembership(MembershipDTO memsdto);
+
 
 }

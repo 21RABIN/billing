@@ -1,11 +1,14 @@
 package com.rbilling.model;
 
+import java.math.BigDecimal;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,12 +35,17 @@ public class Services {
 	    private String name;
 	    
 	  
-	    private Double base_price;
+	    private BigDecimal base_price;
 
 
-	    private Double gst_percent;
+	    private BigDecimal gst_percent;
 	    
 	    private String sac_code;
+	    
+	    private String image;
+	    
+	    @Transient
+	    private BigDecimal discount_percent;
 
 	    @Column(name="is_active")
 	    private Boolean isActive = true;

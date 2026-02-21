@@ -8,6 +8,9 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.springframework.web.multipart.MultipartFile;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -40,6 +43,8 @@ public class Product {
     private BigDecimal selling_price;
     
     private BigDecimal discount_percent;
+    
+    private String image;
 
     @Column(name="gst_percent")
     private BigDecimal gst_percent;

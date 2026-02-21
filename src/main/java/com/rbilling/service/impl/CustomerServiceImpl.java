@@ -22,38 +22,32 @@ import com.rbilling.responce.MessageResponse;
 import com.rbilling.service.CustomerService;
 
 @Service
-@Transactional  //During Data insert time errors find Revort the All data  
-public class CustomerServiceImpl implements CustomerService  {
+@Transactional // During Data insert time errors find Revort the All data
+public class CustomerServiceImpl implements CustomerService {
 
-    @Autowired
-    private CustomerRepository cusrepo;
+	@Autowired
+	private CustomerRepository cusrepo;
 
-    @Autowired
-    private MembershipRepository membershipRepository;
+	@Autowired
+	private MembershipRepository membershipRepository;
 
-    @Autowired
-    private CustomerMembershipRepository customerMembershipRepository;
-    
-    @Autowired
+	@Autowired
+	private CustomerMembershipRepository customerMembershipRepository;
+
+	@Autowired
 	BusinessUnitRepository bunitrepo;
 
+	public ResponseEntity<?> createUpdateCustomer(CustomerDTO cusdto) {
 
+		Customer customer;
 
-    public ResponseEntity<?> createUpdateCustomer(CustomerDTO cusdto) {
+		boolean isNewCustomer = true; // Use For Message Throw Create or Update msg
 
-        Customer customer;
-        
-        boolean isNewCustomer=true; //Use For Message Throw Create or Update msg
-      
-        // Create Customer
-       
-        if (cusdto.getId() == null) {
-        	
-        	  customer = new Customer();
-        	  
-        	  
-            
-            if (cusdto.getBusiness_unit_id() == null) {
+		// Create Customer
+
+		if (cusdto.getId() == null) {
+
+			if (cusdto.getBusiness_unit_id() == null) {
 				return ResponseEntity.badRequest().body(new MessageResponse("Business Unit is required"));
 			}
 
@@ -73,18 +67,18 @@ public class CustomerServiceImpl implements CustomerService  {
 				}
 
 			}
-			
-					               
-           
-        }
-        
-        //Update Customer
-        else {
-        	
-        	  customer = cusrepo.findById(cusdto.getId()).orElse(null);
-        	  isNewCustomer=false;
-        	
-        	if (customer == null) {
+
+			customer = new Customer();
+
+		}
+
+		// Update Customer
+		else {
+
+			customer = cusrepo.findById(cusdto.getId()).orElse(null);
+			isNewCustomer = false;
+
+			if (customer == null) {
 				return ResponseEntity.badRequest().body(new MessageResponse("Customer not found"));
 			}
 
@@ -98,78 +92,83 @@ public class CustomerServiceImpl implements CustomerService  {
 				}
 
 			}
-			
-			
-                    
-        }
 
+		}
+		
+		// finally save the customer
+				customer.setBusiness_unit_id(cusdto.getBusiness_unit_id());
+				customer.setName(cusdto.getName());
+				customer.setMobile(cusdto.getMobile());
+				customer.setEmail(cusdto.getEmail());
+				customer.setAddress(cusdto.getAddress());
+				customer.setIsActive(cusdto.getIsActive());
 
-        try {
-     
-        // Membership Logic
+				cusrepo.save(customer);
 
-        if (Boolean.TRUE.equals(cusdto.getMembership_enabled())) {
+		try {
 
-            if (cusdto.getMembership_id() == null) {
-                return ResponseEntity.badRequest().body( new MessageResponse("Membership Id is required when enabling membership"));
-            }
-            
+			// Membership Logic
 
-            Optional<Membership> membership = membershipRepository.findByIdAndIsActive(cusdto.getMembership_id(), 1);
-                        
-            if(membership==null || !membership.isPresent()) {
-            	return ResponseEntity.ok(new MessageResponse("Active Membership not found"));
-            }
-            
-            LocalDate startDate = LocalDate.now();
-            LocalDate endDate = startDate.plusDays(membership.get().getValidityDays());
+			if (cusdto.isMembership_enabled()) {
+				
+				if (cusdto.getMembership_id() == null) {
+					return ResponseEntity.badRequest()
+							.body(new MessageResponse("Membership Id is required when enabling membership"));
+				}
 
-            CustomerMembership cm = customerMembershipRepository.findByCustomerId(customer.getId()).orElse(new CustomerMembership());
+				Optional<Membership> membership = membershipRepository.findByIdAndIsActive(cusdto.getMembership_id(),
+						true);
 
-            cm.setCustomerId(customer.getId());
-            cm.setMembership_id(membership.get().getId());
-            cm.setStart_date(startDate);
-            cm.setEnd_date(endDate);
-            cm.setStatus(CustomerMembership.Status.ACTIVE);
+				if (membership == null || !membership.isPresent()) {
+					return ResponseEntity.ok(new MessageResponse("Active Membership not found"));
+				}
 
-            customerMembershipRepository.save(cm);
+				LocalDate startDate = LocalDate.now();
+				LocalDate endDate = startDate.plusDays(membership.get().getValidityDays());
 
-        } else {
+				CustomerMembership cm = customerMembershipRepository.findByCustomerId(customer.getId())
+						.orElse(new CustomerMembership());
 
-            // Disable membership (if exists)
-            customerMembershipRepository.findByCustomerId(customer.getId())
-                    .ifPresent(cm -> {
-                        cm.setStatus(CustomerMembership.Status.EXPIRED);
-                        customerMembershipRepository.save(cm);
-                    });
-        }
-        
-        }
-        
-        catch(Exception e) {
-        	System.out.println("MemberShip Exception :"+e.getMessage());
+				cm.setCustomerId(customer.getId());
+				cm.setMembership_id(membership.get().getId());
+				cm.setStart_date(startDate);
+				cm.setEnd_date(endDate);
+//            cm.setStatus(CustomerMembership.Status.ACTIVE);
+
+				System.out.println("cusdto.getMembership_enabled() :" + cusdto.isMembership_enabled());
+
+				if (cusdto.isMembership_enabled()) {
+					cm.setStatus(CustomerMembership.Status.ACTIVE);
+				} else {
+					cm.setStatus(CustomerMembership.Status.EXPIRED);
+				}
+
+				customerMembershipRepository.save(cm);
+				
+
+			} else {
+
+				// Disable membership (if exists)
+				customerMembershipRepository.findByCustomerId(customer.getId()).ifPresent(cm -> {
+					cm.setStatus(CustomerMembership.Status.EXPIRED);
+					customerMembershipRepository.save(cm);
+				});
+			}
+
+		}
+
+		catch (Exception e) {
+			System.out.println("MemberShip Exception :" + e.getMessage());
 //        	return ResponseEntity.ok(new MessageResponse(e.getMessage()));
-        }
-        
-        //finally save the customer
-        customer.setBusiness_unit_id(cusdto.getBusiness_unit_id());
-        customer.setName(cusdto.getName());
-        customer.setMobile(cusdto.getMobile());
-        customer.setEmail(cusdto.getEmail());
-        customer.setAddress(cusdto.getAddress());
-        customer.setIsActive(cusdto.getIsActive());
-        
+		}
 
-        cusrepo.save(customer);
-        
-        
-        if(isNewCustomer) {
-        	return ResponseEntity.ok(new MessageResponse("Customer Created Successfully"));
-        }
-        else {
-        	return ResponseEntity.ok(new MessageResponse("Customer Updated Successfully"));
-        }
-        
-        
-    }
+		
+
+		if (isNewCustomer) {
+			return ResponseEntity.ok(new MessageResponse("Customer Created Successfully"));
+		} else {
+			return ResponseEntity.ok(new MessageResponse("Customer Updated Successfully"));
+		}
+
+	}
 }

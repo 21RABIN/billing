@@ -43,120 +43,91 @@ public class MembershipServiceImpl implements MembershipService {
 	private CustomerMembershipRepository cusmemsrepo;
 
 	@Override
+	@Transactional
 	public ResponseEntity<?> createOrUpdateMembership(MembershipDTO memsdto) {
 
-		Membership membership;
-		boolean isNewMembership = false; // Use For Message Throw Create or Update msg
+	    Membership membership;
+	    boolean isNewMembership = false;
 
-		if (memsdto.getId() == null) {
-			// CREATE
-			isNewMembership = true;
-			membership = new Membership();
-			membership.setIsActive(true);
+	    // CREATE
+	    if (memsdto.getId() == null) {
+	        isNewMembership = true;
+	        membership = new Membership();
+	        
+	        if (memsrepo.existsByName(memsdto.getName())) {
+	            return ResponseEntity.badRequest()
+	                .body(new MessageResponse("Membership Name already available!"));
+	        }
+	        membership.setIsActive(true);
 
-			if (memsrepo.existsByName(memsdto.getName())) {
+	        
 
-				return ResponseEntity.badRequest().body(new MessageResponse("Membership Name already available!"));
+	    } else {
+	        // UPDATE
+	        if (memsrepo.existsByNameAndIdNot(memsdto.getName(), memsdto.getId())) {
+	            return ResponseEntity.badRequest()
+	                .body(new MessageResponse("Membership Name already available!"));
+	        }
 
-			}
+	        membership = memsrepo.findById(memsdto.getId())
+	            .orElseThrow(() -> new RuntimeException("Membership not found"));
+	    }
 
-		} else {
-			// UPDATE
+	    // Set membership details
+	    membership.setName(memsdto.getName());
+	    membership.setValidityDays(memsdto.getValidity_days());
+	    membership.setDiscountType(memsdto.getDiscount_type());
+	    membership.setDiscountValue(memsdto.getDiscount_value());
 
-			if (memsrepo.existsByNameAndIdNot(memsdto.getName(), memsdto.getId())) {
+	    memsrepo.save(membership);
 
-				return ResponseEntity.badRequest().body(new MessageResponse("Membership Name already available!"));
+	    // REMOVE OLD SERVICE MAPPING
+	    servmemspricerepo.deleteByMembershipId(membership.getId());
 
-			}
+	    // MAP SERVICES
+	    if (memsdto.getServices() != null) {
+	        for (ServiceMappingDTO serviceDto : memsdto.getServices()) {
+	            ServiceMembershipPrice map = new ServiceMembershipPrice();
+	            map.setMembershipId(membership.getId());
+	            map.setService_id(serviceDto.getService_id());
+	            map.setSpecial_price(serviceDto.getSpecial_price());
+	            map.setDiscount_percent(serviceDto.getDiscount_percent());
+	            servmemspricerepo.save(map);
+	        }
+	    }
 
-			membership = memsrepo.findById(memsdto.getId())
-					.orElseThrow(() -> new RuntimeException("Membership not found"));
-		}
+	    // ASSIGN CUSTOMERS
+//	    if (memsdto.getCustomer_id() != null) {
+//	        for (Long customerId : memsdto.getCustomer_id()) {
+//	            Customer customer = cusrepo.findById(customerId)
+//	                .orElseThrow(() -> new RuntimeException("Customer not found"));
+//
+//	            // Expire old ACTIVE membership
+//	            cusmemsrepo.findByCustomerIdAndStatus(customerId, CustomerMembership.Status.ACTIVE)
+//	                .ifPresent(old -> {
+//	                    old.setStatus(CustomerMembership.Status.EXPIRED);
+//	                    cusmemsrepo.save(old);
+//	                });
+//
+//	            CustomerMembership cm = new CustomerMembership();
+//	            cm.setCustomerId(customer.getId());
+//	            cm.setMembership_id(membership.getId());
+//	            cm.setStart_date(LocalDate.now());
+//	            cm.setEnd_date(LocalDate.now().plusDays(membership.getValidityDays()));
+//	            cm.setStatus(CustomerMembership.Status.ACTIVE);
+//
+//	            cusmemsrepo.save(cm);
+//	        }
+//	    }
 
-		membership.setName(memsdto.getName());
-		membership.setValidityDays(memsdto.getValidity_days());
-		membership.setDiscountType(memsdto.getDiscount_type());
-		membership.setDiscountValue(memsdto.getDiscount_value());
-		
-
-		memsrepo.save(membership);
-
-		if (isNewMembership) {
-			return ResponseEntity.ok(new MessageResponse("Membership Created Successfully"));
-		} else {
-			return ResponseEntity.ok(new MessageResponse("Membership Updated Successfully"));
-		}
-
-//        return ResponseEntity.ok(new MessageResponse("Membership Created Successfully"));
+	    // Final response
+	    if (isNewMembership) {
+	        return ResponseEntity.ok(new MessageResponse("Membership Created Successfully"));
+	    } else {
+	        return ResponseEntity.ok(new MessageResponse("Membership Updated Successfully"));
+	    }
 	}
 
-	@Override
-	@Transactional
-	public ResponseEntity<?> MapMembership(MembershipDTO memsdto) {
 
-		Membership membership = memsrepo.findById(memsdto.getId())
-				.orElseThrow(() -> new RuntimeException("Membership not found"));
-
-		if (cusmemsrepo.existsByCustomerIdIn(memsdto.getCustomer_id())) {
-			return ResponseEntity.badRequest()
-					.body(new MessageResponse("Membership already exists for one of the customers"));
-		}
-
-		// REMOVE OLD SERVICE MAPPING
-
-		servmemspricerepo.deleteByMembershipId(membership.getId());
-
-		if (cusmemsrepo.existsByCustomerIdIn(memsdto.getCustomer_id())) {
-			return ResponseEntity.badRequest()
-					.body(new MessageResponse("Membership already exists for one of the customers"));
-		}
-
-		// MAP SERVICES
-
-		if (memsdto.getServices() != null) {
-
-			for (ServiceMappingDTO serviceDto : memsdto.getServices()) {
-
-				ServiceMembershipPrice map = new ServiceMembershipPrice();
-				map.setMembershipId(membership.getId());
-				map.setService_id(serviceDto.getService_id());
-				map.setSpecial_price(serviceDto.getSpecial_price());
-				map.setDiscount_percent(serviceDto.getDiscount_percent());
-
-				servmemspricerepo.save(map);
-			}
-		}
-
-		// ASSIGN CUSTOMERS
-
-		if (memsdto.getCustomer_id() != null) {
-
-			for (Long customerId : memsdto.getCustomer_id()) {
-
-				Optional<Customer> customer = cusrepo.findById(customerId);
-
-				if (customer == null) {
-					return ResponseEntity.badRequest().body(new MessageResponse("Customer Not Found"));
-				}
-
-				// Expire old ACTIVE membership
-				cusmemsrepo.findByCustomerIdAndStatus(customerId, CustomerMembership.Status.ACTIVE).ifPresent(old -> {
-					old.setStatus(CustomerMembership.Status.EXPIRED);
-					cusmemsrepo.save(old);
-				});
-
-				CustomerMembership cm = new CustomerMembership();
-				cm.setCustomerId(customer.get().getId());
-				cm.setMembership_id(membership.getId());
-				cm.setStart_date(LocalDate.now());
-				cm.setEnd_date(LocalDate.now().plusDays(membership.getValidityDays()));
-				cm.setStatus(CustomerMembership.Status.ACTIVE);
-
-				cusmemsrepo.save(cm);
-			}
-		}
-
-		return ResponseEntity.ok(new MessageResponse("Membership Mapping Completed Successfully"));
-	}
 
 }

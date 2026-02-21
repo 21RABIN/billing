@@ -41,57 +41,36 @@ public class MembershipsController {
 	        return memsserv.createOrUpdateMembership(memsdto);
 	    }
 	  
-	  @PostMapping("/memsmap")
-	    public ResponseEntity<?> MapMembership(@RequestBody MembershipDTO memsdto) {
-	        return memsserv.MapMembership(memsdto);
-	    }
-	  
-	  //This api changes Needed 
 	  @GetMapping("/all")
-	  public ResponseEntity<List<MembershipDTO>> getAllMemberships() {
-	      List<Object[]> results = memrepo.getAllMemberships();
-	      
-	      Map<Long, MembershipDTO> membershipMap = new LinkedHashMap<>();
-	       
-	      for (Object[] row : results) {
-	    	    if (row[0] == null) continue; // skip invalid rows
+	  public ResponseEntity<List<Map<String,Object>>> getAllMemberships() {
+	      List<Map<String,Object>> memberships = memrepo.getMembershipsOnly();
+	      List<Map<String,Object>> services = memrepo.getMembershipServices();
 
-	    	    Long membershipId = ((Number) row[0]).longValue();
+	      // Build a map keyed by membership_id
+	      Map<Long, Map<String,Object>> membershipMap = new LinkedHashMap<>();
 
-	    	    MembershipDTO membership = membershipMap.computeIfAbsent(membershipId, id -> {
-	    	        MembershipDTO dto = new MembershipDTO();
-	    	        dto.setId(id);
-	    	        dto.setName((String) row[1]);
-	    	        dto.setValidity_days(row[2] != null ? ((Number) row[2]).intValue() : null);
-	    	        dto.setDiscount_type((String) row[3]);
-	    	        dto.setDiscount_value((BigDecimal) row[4]);
-	    	        dto.setIsActive(row[15] != null ? ((Number) row[15]).intValue() == 1 : true);
+	      // Put memberships into the map
+	      for (Map<String,Object> row : memberships) {
+	          Long id = ((Number) row.get("id")).longValue();
+	          Map<String,Object> mem = new LinkedHashMap<>(row);
+	          mem.put("services", new ArrayList<Map<String,Object>>());
+	          membershipMap.put(id, mem);
+	      }
 
-	    	        dto.setServices(new ArrayList<>());
-	    	        return dto;
-	    	    });
+	      // Attach services to memberships
+	      for (Map<String,Object> row : services) {
+	          Long membershipId = ((Number) row.get("membership_id")).longValue();
+	          Map<String,Object> membership = membershipMap.get(membershipId);
+	          if (membership != null) {
+	              @SuppressWarnings("unchecked")
+	              List<Map<String,Object>> serviceList = (List<Map<String,Object>>) membership.get("services");
+	              serviceList.add(row);
+	          }
+	      }
 
-	    	    if (row[5] != null) { // only add service if present
-	    	        ServiceMappingDTO service = new ServiceMappingDTO();
-	    	        service.setService_id(((Number) row[5]).longValue());
-	    	        service.setBusiness_unit_id(row[6] != null ? ((Number) row[6]).longValue() : null);
-	    	        service.setBusiness_name((String) row[7]);
-	    	        service.setName((String) row[8]);
-	    	        service.setBase_Price((BigDecimal) row[9]);
-	    	        service.setGst_percent((BigDecimal) row[10]);
-	    	        service.setSac_code((String) row[11]);
-	    	        service.setIsActive(row[12] != null ? (Boolean) row[12] : true);
-	    	        service.setSpecial_price((BigDecimal) row[13]);
-	    	        service.setDiscount_percent((BigDecimal) row[14]);
-
-	    	        membership.getServices().add(service);
-	    	    }
-	    	}
-
-	      
-	    
 	      return ResponseEntity.ok(new ArrayList<>(membershipMap.values()));
 	  }
+
 
 	
 	@GetMapping("/servceprice")

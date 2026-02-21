@@ -8,8 +8,11 @@ import lombok.Data;
 @Data
 public class PaymentDTO {
 	
-	 private BigDecimal amount;
+	 private BigDecimal payment_amount;
      private String mode; // CASH, CARD, UPI, BANK
-     private String reference_no;
-
+     private BigDecimal tax_amount;
+     private BigDecimal total_amount;
+    
+//     private BigDecimal net_amount;
+    
 }
