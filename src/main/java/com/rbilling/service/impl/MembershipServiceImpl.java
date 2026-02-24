@@ -78,6 +78,7 @@ public class MembershipServiceImpl implements MembershipService {
 	    membership.setValidityDays(memsdto.getValidity_days());
 	    membership.setDiscountType(memsdto.getDiscount_type());
 	    membership.setDiscountValue(memsdto.getDiscount_value());
+	    membership.setBusinessUnitId(memsdto.getBusiness_unit_id());
 
 	    memsrepo.save(membership);
 

@@ -35,7 +35,7 @@ public class ProductController {
 	@PostMapping("/create") // Both Api Create and Update
 //    @PreAuthorize("hasRole('ADMIN','FRANCHESE')")  //ADMIN AND FRANCHESE ROLE ONLY ACESS THIS API
 	public ResponseEntity<?> createUpdateProduct(@RequestBody ProductDTO proddto) {
-
+		
 		return prodservice.createUpdateProduct(proddto);
 	}
 

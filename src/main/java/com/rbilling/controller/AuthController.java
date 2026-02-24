@@ -2,15 +2,19 @@ package com.rbilling.controller;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -20,9 +24,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.rbilling.model.BusinessUnit;
 import com.rbilling.model.ERole;
+import com.rbilling.model.Employee;
 import com.rbilling.model.Role;
 import com.rbilling.model.User;
+import com.rbilling.repository.BusinessUnitRepository;
+import com.rbilling.repository.EmployeeRepository;
 import com.rbilling.repository.RoleRepository;
 import com.rbilling.repository.UserRepository;
 import com.rbilling.request.LoginRequest;
@@ -44,56 +52,53 @@ public class AuthController {
 	UserRepository userRepository;
 
 	@Autowired
+	EmployeeRepository employeeRepository;
+
+	@Autowired
 	RoleRepository roleRepository;
+
+	@Autowired
+	BusinessUnitRepository businessUnitRepository;
 
 	@Autowired
 	PasswordEncoder encoder;
 
 	@Autowired
 	JwtUtils jwtUtils;
+	@Autowired
+	BusinessUnitRepository bunitrepo;
 
 	@PostMapping("/signin")
 	public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest,
 			HttpServletRequest servrequest) {
 
-		// Capture client IP address for logging
-		String remoteAddress = servrequest.getRemoteAddr();
-
-		// Authenticate using Spring Security
 		Authentication authentication = authenticationManager.authenticate(
 				new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
-		// Store authentication in security context
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 
-		// Generate JWT token for authenticated user
 		String jwt = jwtUtils.generateJwtToken(authentication);
 
-		// Extract logged-in user details
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-		// Fetch roles of the user
-		List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority())
+		List<String> roles = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority)
 				.collect(Collectors.toList());
 
-		Integer is_profile = 0;
+		System.out.println("roles :" + roles);
 
-		// get profile details by role
-		System.out.println("1---:" + roles);
-
-		System.out.println("id---:" + userDetails.getId());
-		System.out.println("role---:" + roles);
-
-		String name = "";
-
-		// Handle login based on user roles
-		// This check is redundant. You can just check roles.contains(...)
+		JwtResponse response = new JwtResponse();
+//		response.setToken(jwt);
+		response.setAccessToken(jwt);
+		response.setId(userDetails.getId());
+		response.setUsername(userDetails.getUsername());
+		response.setEmail(userDetails.getEmail());
+		response.setRoles(roles);
 		if (roles.size() > 0) {
-			return ResponseEntity.ok(new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(),
-					userDetails.getEmail(), roles, is_profile, name));
+
+			return ResponseEntity.ok(response);
 		}
 
-		return ResponseEntity.badRequest().body(new MessageResponse("Login failed!"));
+		return ResponseEntity.badRequest().body(new MessageResponse("Login failed! User Not Exist"));
 	}
 
 	@PostMapping("/signup")
@@ -155,6 +160,8 @@ public class AuthController {
 				}
 			});
 		}
+
+//		String nome=bunitrepo.findbybunitname();
 
 		// Create new user's account
 		User user = new User(signUpRequest.getEmail(), encoder.encode(signUpRequest.getPassword()),

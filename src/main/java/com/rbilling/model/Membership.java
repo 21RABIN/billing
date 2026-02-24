@@ -39,6 +39,8 @@ public class Membership {
 	@Column(name = "discount_value")
 	private BigDecimal discountValue;
 	
+	@Column(name="business_unit_id")
+	private Long businessUnitId;
 	
 	@Column(name = "is_active")
 	private Boolean isActive;

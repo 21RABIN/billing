@@ -32,6 +32,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 	String getRoleNameByUserId(int user_id);
 
 	boolean existsByEmailAndIdNot(String email, Long userId);
+	
+	
 
 	
 	

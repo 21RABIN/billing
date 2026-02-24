@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.rbilling.DTO.EmployeeDTO;
 import com.rbilling.repository.EmployeeRepository;
+import com.rbilling.repository.UserRepository;
 import com.rbilling.service.EmployeeService;
 
 @CrossOrigin(origins = "*", maxAge = 3600) // Allowing all origins is risky. Consider restricting to trusted domains in
@@ -29,6 +30,9 @@ public class EmployeeController {
 
 	@Autowired
 	EmployeeRepository emprepo;
+	@Autowired
+	UserRepository userRepository;
+	
 
 	@PostMapping("/create") // Both Api Create and Update
 	 @PreAuthorize("hasRole('ADMIN')")  //Admin role Only Access this Api
@@ -45,11 +49,25 @@ public class EmployeeController {
 
 		return ResponseEntity.ok(units);
 	}
+	
+	@GetMapping("/mainfranchises")
+	public ResponseEntity<List<Map<String, Object>>> getEmployeeMainFranchise(@RequestParam Long empid) {
+
+		List<Map<String, Object>> units = emprepo.getEmployeeMainFranchise(empid);
+
+		return ResponseEntity.ok(units);
+	}
 
 	@GetMapping("/all")
 	public ResponseEntity<List<Map<String, Object>>> getAllEmployees(@RequestParam Long bunitid) {
+		
 		List<Map<String, Object>> employees = emprepo.getAllEmployees(bunitid);
 		return ResponseEntity.ok(employees);
+	}
+	
+	@GetMapping("/userdetails")
+	public ResponseEntity<?> getUserDetails(@RequestParam  Long user_id) {
+	    return ResponseEntity.ok(empservice.getUserFullDetails(user_id));
 	}
 	
 	

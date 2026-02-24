@@ -13,6 +13,7 @@ public class ProductDTO {
 	    private String name;
 	    private Long business_unit_id;
 	    private String sku;
+	    private String hsn_code;
 	    private Double price;
 	    private BigDecimal selling_price;
 	    private BigDecimal discount_percent;

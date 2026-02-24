@@ -40,6 +40,8 @@ public class Product {
 
     private Double price;
     
+    private String hsn_code;
+    
     private BigDecimal selling_price;
     
     private BigDecimal discount_percent;

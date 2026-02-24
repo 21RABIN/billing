@@ -48,7 +48,10 @@ public class BusinessUnit {
     private String address;
 
     private String mobile;
-
+    
+    private String email;
+    
+    private Long user_id;
 
     private String gst_in;
 

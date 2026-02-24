@@ -2,6 +2,10 @@ package com.rbilling.service.impl;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.transaction.Transactional;
@@ -12,19 +16,26 @@ import org.springframework.stereotype.Service;
 
 import com.rbilling.DTO.RetailInvoiceRequestDTO;
 import com.rbilling.model.Customer;
+import com.rbilling.model.Employee;
 import com.rbilling.model.Invoice;
 import com.rbilling.model.InvoiceItem;
 import com.rbilling.model.Payment;
 import com.rbilling.model.Product;
 import com.rbilling.model.ProductBatch;
 import com.rbilling.model.Services;
+import com.rbilling.model.User;
+import com.rbilling.repository.BusinessUnitRepository;
 import com.rbilling.repository.CustomerRepository;
+import com.rbilling.repository.EmployeeRepository;
 import com.rbilling.repository.InvoiceItemRepository;
 import com.rbilling.repository.InvoiceRepository;
 import com.rbilling.repository.PaymentRepository;
 import com.rbilling.repository.ProductBatchRepository;
 import com.rbilling.repository.ProductRepository;
+import com.rbilling.repository.PurchaseOrderRepository;
+import com.rbilling.repository.RoleRepository;
 import com.rbilling.repository.ServicesRepository;
+import com.rbilling.repository.UserRepository;
 import com.rbilling.responce.MessageResponse;
 import com.rbilling.service.RetailBillingService;
 
@@ -46,9 +57,24 @@ public class RetailBillingServiceImpl implements RetailBillingService {
 	@Autowired
 	PaymentRepository paymentRepo;
 	@Autowired
-	private CustomerRepository cusrepo;
+	CustomerRepository cusrepo;
 	@Autowired
 	ServicesRepository servrepo;
+	@Autowired
+	PurchaseOrderRepository porepo;
+	@Autowired
+	RoleRepository roleRepository;
+	@Autowired
+	EmployeeRepository emprepo;
+	
+	@Autowired
+	UserRepository userrepo;
+	
+	@Autowired
+	BusinessUnitRepository bunitrepo;
+	
+	@Autowired
+	InvoiceRepository invoicerepo;
 
 	public ResponseEntity<?> createRetailInvoice(RetailInvoiceRequestDTO request) {
 
@@ -68,6 +94,17 @@ public class RetailBillingServiceImpl implements RetailBillingService {
 		invoice.setBilled_by(request.getBilled_by());
 
 		invoice = invoiceRepo.save(invoice);
+		
+//		PurchaseOrders po = new PurchaseOrders();
+//		
+//		po.setSupplier_id(invoice.getBusiness_unit_id());
+//		po.setOrder_date(invoice.getInvoice_date());
+//		po.setStatus(invoice.getStatus());
+//		po.setTotalAmount(invoice.getTotal_amount());
+//		po.setBusiness_unit_id(invoice.getBusiness_unit_id());
+//		
+//		porepo.save(po);
+//		
 
 		// Loop Products
 		for (RetailInvoiceRequestDTO.ProductItemDTO item : request.getProductitems()) {
@@ -75,9 +112,7 @@ public class RetailBillingServiceImpl implements RetailBillingService {
 		    BigDecimal price = BigDecimal.ZERO;
 		    BigDecimal gstPercent = BigDecimal.ZERO;
 		    String description = "";
-		    Long itemId = null;
-
-		  
+		    Long itemId = null;		  
 
 			if(item.getItem_type().equalsIgnoreCase("PRODUCT")) {
 			Product product = productRepo.findById(item.getProduct_id())
@@ -190,4 +225,91 @@ public class RetailBillingServiceImpl implements RetailBillingService {
 		return ResponseEntity.ok(new MessageResponse("Retail Invoice Created Successfully"));
 
 	}
+	
+	public List<Map<String, Object>> getRoleBasedPayments(Long userId) {
+
+        String role = roleRepository.getRoleuserid(userId);
+
+        User user = userrepo.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Get employee record to fetch business_unit
+        Employee emp = null;
+
+        try {
+            emp = emprepo.findByUserId(userId);
+        } catch (Exception ex) {
+            emp = null;
+        }
+
+        if (role != null && role.contains("ROLE_ADMIN")) {
+            return paymentRepo.getAllPayments();
+        }
+
+        // ROLE_EMPLOYEE
+    
+        if (role.contains("ROLE_EMPLOYEE")) {
+        	System.out.println("");
+            return paymentRepo.getPaymentsByUser(userId);
+        }
+
+       
+        // ROLE_MANAGER / FRANCHISE / MAIN
+       
+        if (emp != null) {
+
+            Long unitId = emp.getBusiness_unit_id();
+
+            List<Long> allUnits =
+            		bunitrepo.getAllChildUnitIds(unitId);
+
+            return paymentRepo.getPaymentsByUnits(allUnits);
+        }
+
+        return new ArrayList<>();
+    }
+	
+	
+	
+	 public List<Map<String, Object>> getPaymentData(Long userId) {
+		 
+		  String role = roleRepository.getRoleuserid(userId);
+		  
+		 Long filterUserId = "ADMIN".equalsIgnoreCase(role) ? null : userId;
+
+
+	        BigDecimal totalReceived =
+	                Optional.ofNullable(paymentRepo.getTotalReceivedByUser(filterUserId))
+	                        .orElse(BigDecimal.ZERO);
+
+	        BigDecimal todayReceived =
+	                Optional.ofNullable(paymentRepo.getTodayReceivedByUser(filterUserId))
+	                        .orElse(BigDecimal.ZERO);
+
+	        BigDecimal totalInvoiceAmount =
+	                Optional.ofNullable(invoicerepo.getTotalInvoiceAmount(filterUserId))
+	                        .orElse(BigDecimal.ZERO);
+
+	        // Pending = Invoice - Payment
+	        BigDecimal pendingAmount = totalInvoiceAmount.subtract(totalReceived);
+
+	        // Refund logic
+	        BigDecimal refundAmount = BigDecimal.ZERO;
+	        if (totalReceived.compareTo(totalInvoiceAmount) > 0) {
+	            refundAmount = totalReceived.subtract(totalInvoiceAmount);
+	        }
+
+	        List<Map<String, Object>> responseList = new ArrayList<>();
+
+	        Map<String, Object> map = new LinkedHashMap<>();
+	        map.put("total_received", totalReceived);
+	        map.put("pending_amount", pendingAmount);
+	        map.put("refund_amount", refundAmount);
+	        map.put("today_received", todayReceived);
+
+	        responseList.add(map);
+
+	        return responseList;
+	    }
+
 }

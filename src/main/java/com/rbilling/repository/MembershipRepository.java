@@ -26,7 +26,7 @@ public interface MembershipRepository extends JpaRepository<Membership, Long> {
 //	List<Object[]> getAllMemberships();
 	
 	
-	@Query(value = "SELECT mems.* FROM memberships mems WHERE mems.is_active = 1 ORDER BY mems.id", nativeQuery = true)
+	@Query(value = "SELECT mems.*,bunit.name as business_name FROM memberships mems left join business_units bunit on bunit.id=mems.business_unit_id WHERE mems.is_active = 1 ORDER BY mems.id", nativeQuery = true)
 	List<Map<String,Object>> getMembershipsOnly();
 
 	@Query(value = "SELECT smp.membership_id, s.id AS service_id, s.business_unit_id, bu.name AS business_name, s.name AS service_name, s.base_price, s.gst_percent, s.sac_code, s.is_active AS service_active, smp.special_price, smp.discount_percent FROM service_membership_price smp LEFT JOIN services s ON smp.service_id = s.id LEFT JOIN business_units bu ON s.business_unit_id = bu.id", nativeQuery = true)

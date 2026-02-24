@@ -30,7 +30,7 @@ public class ProductServiceImpl implements ProductService {
 
 	public ResponseEntity<?> createUpdateProduct(ProductDTO proddto) {
 
-		// CREATE 
+		// CREATE
 		if (proddto.getId() == null) {
 
 			if (prodrepo.existsByName(proddto.getName())) {
@@ -73,11 +73,12 @@ public class ProductServiceImpl implements ProductService {
 				}
 			}
 
+			System.out.println("hsn_code :" + proddto.getHsn_code());
 			Product product = Product.builder().businessUnitId(proddto.getBusiness_unit_id()).name(proddto.getName())
 					.sku(proddto.getSku()).price(proddto.getPrice()).selling_price(proddto.getSelling_price())
 					.discount_percent(proddto.getDiscount_percent()).gst_percent(proddto.getGst_percent())
-					.isActive(true).image(imagePath).build();
-			prodrepo.save(product);
+					.hsn_code(proddto.getHsn_code()).isActive(true).image(imagePath).build();
+			product = prodrepo.save(product);
 
 			if (Boolean.TRUE.equals(proddto.getTrack_batch())) {
 				// Product Batch Added
@@ -104,7 +105,7 @@ public class ProductServiceImpl implements ProductService {
 				return ResponseEntity.badRequest().body(new MessageResponse("Product not found or unauthorized"));
 			}
 			System.out.println("product.getImage() :" + product.getImage());
-			
+
 			String imagePath = null;
 
 			if (product.getImage() != null) {
@@ -142,9 +143,8 @@ public class ProductServiceImpl implements ProductService {
 							Files.write(path, imageBytes);
 
 							product.setImage(uploadDir + fileName);
-							
-							imagePath = uploadDir + fileName;
 
+							imagePath = uploadDir + fileName;
 
 						} catch (Exception e) {
 							return ResponseEntity.badRequest().body(new MessageResponse("Invalid Image Format"));
@@ -153,10 +153,9 @@ public class ProductServiceImpl implements ProductService {
 
 				}
 			}
-			
+
 			else {
-				
-				
+
 				if (proddto.getImage() != null && !proddto.getImage().isEmpty()) {
 
 					try {
@@ -188,7 +187,7 @@ public class ProductServiceImpl implements ProductService {
 						return ResponseEntity.badRequest().body(new MessageResponse("Invalid Image Format"));
 					}
 				}
-				
+
 			}
 
 			if (proddto.getName() != null)
@@ -211,9 +210,11 @@ public class ProductServiceImpl implements ProductService {
 
 			if (proddto.getSelling_price() != null)
 				product.setSelling_price(proddto.getSelling_price());
-			
+
 			if (proddto.getImage() != null)
 				product.setImage(imagePath);
+			if (proddto.getHsn_code() != null)
+				product.setHsn_code(proddto.getHsn_code());
 
 			prodrepo.save(product);
 

@@ -18,5 +18,6 @@ public class MembershipDTO {
 
 	    private List<ServiceMappingDTO> services;
 	    private List<Long> customer_id;
+	    private Long business_unit_id;
 
 }

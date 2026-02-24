@@ -1,7 +1,8 @@
 package com.rbilling.service.impl;
 
 import java.util.HashSet;
-import java.util.Optional;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -11,11 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rbilling.DTO.EmployeeDTO;
 import com.rbilling.model.BusinessUnit;
-import com.rbilling.model.ERole;
 import com.rbilling.model.Employee;
 import com.rbilling.model.Role;
 import com.rbilling.model.User;
@@ -77,7 +75,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 			// Login Credential Adding
 			Set<Role> roles = new HashSet<>();
 
-			Role specific_role = (Role) roleRepository.findByRole(ERole.ROLE_EMPLOYEE)
+			Role specific_role = (Role) roleRepository.findByRole(empdto.getRole())
 					.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
 
 			System.out.println("specific_role :" + specific_role);
@@ -87,6 +85,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 			User user = new User(empdto.getEmail(), encoder.encode(empdto.getMobile()), empdto.getEmail(),
 					empdto.getMobile());
 			user.setRoles(roles);
+			
 			userRepository.save(user);
 
 			System.out.println("user.getId() :" + user.getId());
@@ -157,12 +156,78 @@ public class EmployeeServiceImpl implements EmployeeService {
 			user.setPassword(encoder.encode(employee.getMobile())); // encoding mobile as password
 			user.setRaw_password(employee.getMobile());
 			user.setUsername(employee.getEmail());
+			
+			Set<Role> roles = new HashSet<>();
+
+			Role specific_role = (Role) roleRepository.findByRole(empdto.getRole())
+					.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+			roles.add(specific_role);
+			user.setRoles(roles);
+
 
 			// Save changes
 			userRepository.save(user);
-
+			
+			
+			
+			
+			
 			return ResponseEntity.ok(new MessageResponse("Employee Updated Successfully"));
 		}
+	}
+	
+	
+	public Map<String, Object> getUserFullDetails(Long userId) {
+
+	    Map<String, Object> response = new LinkedHashMap<>();
+
+	    //  Get Basic User
+	    User user = userRepository.findById(userId)
+	            .orElseThrow(() -> new RuntimeException("User not found"));
+
+	    //Get Role
+	    String role = roleRepository.getRoleuserid(userId);
+
+	    response.put("userId", user.getId());
+	    response.put("username", user.getUsername());
+	    response.put("email", user.getEmail());
+	    response.put("role", role);
+
+	    // If Employee Role
+	    if ("ROLE_EMPLOYEE".equalsIgnoreCase(role)) {
+
+	        Map<String, Object> empData =
+	        		emprepo.getEmployeeFullDetails(userId);
+
+	        if (empData != null) {
+
+	            Map<String, Object> businessUnit = new LinkedHashMap<>();
+	            businessUnit.put("id", empData.get("bu_id"));
+	            businessUnit.put("name", empData.get("bu_name"));
+	            businessUnit.put("type", empData.get("bu_type"));
+	            
+
+	            Map<String, Object> parent = new LinkedHashMap<>();
+	            parent.put("id", empData.get("parent_id"));
+	            parent.put("name", empData.get("parent_name"));
+	            parent.put("type", empData.get("parent_type"));
+
+//	            businessUnit.put("parent", parent);
+
+	            Map<String, Object> employee = new LinkedHashMap<>();
+	            employee.put("id", empData.get("emp_id"));
+	            employee.put("name", empData.get("emp_name"));
+	            employee.put("mobile", empData.get("mobile"));
+//	            employee.put("businessUnit", businessUnit);
+	            
+
+	            response.put("employee", employee);
+	            response.put("franchese", businessUnit);
+	            response.put("main", parent);
+	        }
+	    }
+
+	    return response;
 	}
 
 }
