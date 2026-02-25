@@ -87,5 +87,16 @@ public class SupplierServiceImpl implements SupplierService {
 
         return ResponseEntity.ok(new MessageResponse(message));
     }
-}
 
+	@Override
+	public ResponseEntity<?> deleteSupplier(Long id) {
+		Supplier supplier = supplierRepository.findById(id).orElse(null);
+		if (supplier == null) {
+			return ResponseEntity.badRequest().body(new MessageResponse("Supplier not found"));
+		}
+
+		supplier.setIsActive(false);
+		supplierRepository.save(supplier);
+		return ResponseEntity.ok(new MessageResponse("Supplier Deleted Successfully"));
+	}
+}

@@ -1,7 +1,11 @@
 package com.rbilling.service.impl;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -13,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.rbilling.DTO.EmployeeDTO;
+import com.rbilling.DTO.EmployeePerformanceDTO;
 import com.rbilling.model.BusinessUnit;
 import com.rbilling.model.Employee;
 import com.rbilling.model.Role;
@@ -22,6 +27,7 @@ import com.rbilling.repository.EmployeeRepository;
 import com.rbilling.repository.RoleRepository;
 import com.rbilling.repository.UserRepository;
 import com.rbilling.responce.MessageResponse;
+import com.rbilling.service.AccessScopeService;
 import com.rbilling.service.EmployeeService;
 
 @Service
@@ -41,6 +47,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 	@Autowired
 	RoleRepository roleRepository;
+
+	@Autowired
+	AccessScopeService accessScopeService;
 
 	private static final Logger log = LoggerFactory.getLogger(EmployeeServiceImpl.class);
 
@@ -228,6 +237,87 @@ public class EmployeeServiceImpl implements EmployeeService {
 	    }
 
 	    return response;
+	}
+
+	@Override
+	public ResponseEntity<?> deleteEmployee(Long id) {
+		Employee employee = emprepo.findById(id).orElse(null);
+		if (employee == null) {
+			return ResponseEntity.badRequest().body(new MessageResponse("Employee not found"));
+		}
+
+		employee.setIsActive(false);
+		emprepo.save(employee);
+		return ResponseEntity.ok(new MessageResponse("Employee Deleted Successfully"));
+	}
+
+	@Override
+	public List<EmployeePerformanceDTO> getEmployeePerformance(Long user_id, LocalDate from_date, LocalDate to_date) {
+		List<Map<String, Object>> rows = new ArrayList<>();
+		String role = accessScopeService.getRole(user_id);
+
+		if ("ROLE_ADMIN".equals(role)) {
+			rows = emprepo.getEmployeePerformanceAll(from_date, to_date);
+		} else if ("ROLE_EMPLOYEE".equals(role)) {
+			rows = emprepo.getEmployeePerformanceByUserId(user_id, from_date, to_date);
+		} else {
+			List<Long> unitIds = accessScopeService.getAccessibleBusinessUnitIds(user_id);
+			if (!unitIds.isEmpty()) {
+				rows = emprepo.getEmployeePerformanceByUnits(unitIds, from_date, to_date);
+			}
+		}
+
+		List<EmployeePerformanceDTO> response = new ArrayList<>();
+			for (Map<String, Object> row : rows) {
+				EmployeePerformanceDTO dto = new EmployeePerformanceDTO();
+				dto.setEmployee_id(toLong(row.get("employee_id")));
+				dto.setUser_id(toLong(row.get("user_id")));
+				dto.setEmployee_name(toStringValue(row.get("employee_name")));
+				dto.setBusiness_unit_id(toLong(row.get("business_unit_id")));
+				dto.setBusiness_unit_name(toStringValue(row.get("business_unit_name")));
+				dto.setTotal_invoices(toLong(row.get("total_invoices")));
+				dto.setTotal_service_amount(toBigDecimal(row.get("total_service_amount")));
+				dto.setTotal_product_amount(toBigDecimal(row.get("total_product_amount")));
+				dto.setTotal_amount(toBigDecimal(row.get("total_amount")));
+				response.add(dto);
+		}
+
+		return response;
+	}
+
+	private Long toLong(Object value) {
+		if (value == null) {
+			return 0L;
+		}
+		if (value instanceof Number) {
+			return ((Number) value).longValue();
+		}
+		try {
+			return Long.parseLong(value.toString());
+		} catch (Exception ex) {
+			return 0L;
+		}
+	}
+
+	private BigDecimal toBigDecimal(Object value) {
+		if (value == null) {
+			return BigDecimal.ZERO;
+		}
+		if (value instanceof BigDecimal) {
+			return (BigDecimal) value;
+		}
+		if (value instanceof Number) {
+			return BigDecimal.valueOf(((Number) value).doubleValue());
+		}
+		try {
+			return new BigDecimal(value.toString());
+		} catch (Exception ex) {
+			return BigDecimal.ZERO;
+		}
+	}
+
+	private String toStringValue(Object value) {
+		return value == null ? null : value.toString();
 	}
 
 }

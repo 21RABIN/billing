@@ -7,5 +7,7 @@ import com.rbilling.DTO.ServicesDTO;
 public interface ServicesService  {
 
 	ResponseEntity<?> createUpdateServices(ServicesDTO servdto);
+	
+	ResponseEntity<?> deleteService(Long id);
 
 }

@@ -9,5 +9,7 @@ public interface ProductService {
 
 
 	ResponseEntity<?> createUpdateProduct(ProductDTO proddto);
+	
+	ResponseEntity<?> deleteProduct(Long id);
 
 }

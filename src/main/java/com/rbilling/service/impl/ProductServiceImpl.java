@@ -286,4 +286,16 @@ public class ProductServiceImpl implements ProductService {
 			return ResponseEntity.ok(new MessageResponse("Product Updated Successfully"));
 		}
 	}
+
+	@Override
+	public ResponseEntity<?> deleteProduct(Long id) {
+		Product product = prodrepo.findById(id).orElse(null);
+		if (product == null) {
+			return ResponseEntity.badRequest().body(new MessageResponse("Product not found"));
+		}
+
+		product.setIsActive(false);
+		prodrepo.save(product);
+		return ResponseEntity.ok(new MessageResponse("Product Deleted Successfully"));
+	}
 }

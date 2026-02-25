@@ -171,4 +171,18 @@ public class CustomerServiceImpl implements CustomerService {
 		}
 
 	}
+
+	@Override
+	public ResponseEntity<?> deleteCustomer(Long id) {
+		Customer customer = cusrepo.findById(id).orElse(null);
+		if (customer == null) {
+			return ResponseEntity.badRequest().body(new MessageResponse("Customer not found"));
+		}
+
+		customer.setIsActive(false);
+		customer.setIsDelete(true);
+		cusrepo.save(customer);
+
+		return ResponseEntity.ok(new MessageResponse("Customer Deleted Successfully"));
+	}
 }

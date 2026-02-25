@@ -23,7 +23,7 @@ import com.rbilling.service.RetailBillingService;
 
 import lombok.RequiredArgsConstructor;
 
-@CrossOrigin(origins = "*", maxAge = 3600) 
+@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/v1/retail")
 @RequiredArgsConstructor
@@ -31,44 +31,34 @@ public class RetailBillingController {
 
 	@Autowired
 	RetailBillingService billingService;
-	
+
 	@Autowired
 	PaymentRepository paymentrepo;
-	
+
 	@Autowired
 	EmployeeRepository emprepo;
-	
+
 	@Autowired
 	RoleRepository roleRepository;
-	
-	
-
 
 	@PostMapping("/billing")
 	public ResponseEntity<?> createInvoice(@RequestBody RetailInvoiceRequestDTO request) {
-		
+
 		return billingService.createRetailInvoice(request);
 
 	}
-	
-	 @GetMapping("/all")
-	    public ResponseEntity<List<Map<String, Object>>> getBillingPayment(
-	            @RequestParam Long user_id) {
 
-	        List<Map<String, Object>> data =
-	        		billingService.getRoleBasedPayments(user_id);
+	@GetMapping("/all")
+	public ResponseEntity<List<Map<String, Object>>> getBillingPayment(@RequestParam Long user_id) {
 
-	        return ResponseEntity.ok(data);
-	    }
-	 
-	 
+		List<Map<String, Object>> data = billingService.getRoleBasedPayments(user_id);
 
-	    @GetMapping("/paymentdata")
-	    public ResponseEntity<List<Map<String, Object>>> getPaymentData(@RequestParam Long user_id) {
-	        return ResponseEntity.ok(billingService.getPaymentData(user_id));
-	    }
-	
-	
-	
+		return ResponseEntity.ok(data);
+	}
+
+	@GetMapping("/paymentdata")
+	public ResponseEntity<List<Map<String, Object>>> getPaymentData(@RequestParam Long user_id) {
+		return ResponseEntity.ok(billingService.getPaymentData(user_id));
+	}
 
 }

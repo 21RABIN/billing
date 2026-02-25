@@ -7,6 +7,8 @@ import com.rbilling.DTO.MembershipDTO;
 public interface MembershipService {
 
 	ResponseEntity<?>  createOrUpdateMembership(MembershipDTO memsdto);
+	
+	ResponseEntity<?> deleteMembership(Long id);
 
 
 

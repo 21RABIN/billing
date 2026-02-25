@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.rbilling.model.Services;
 
@@ -18,6 +19,20 @@ public interface ServicesRepository extends JpaRepository<Services, Long> {
 	 @Query(value = "select * from service_membership_price ",nativeQuery = true)
 	List<Map<String, Object>> getAllServMemsPrice();
 
+	@Query(value = "SELECT COUNT(*) FROM services", nativeQuery = true)
+	Long countAllServices();
+
+	@Query(value = "SELECT COUNT(*) FROM services WHERE business_unit_id IN (:unitIds)", nativeQuery = true)
+	Long countServicesByBusinessUnitIds(@Param("unitIds") List<Long> unitIds);
+
+	@Query(value = "SELECT s.id, s.business_unit_id, s.name, COALESCE(SUM(ii.quantity),0) AS total_qty, COALESCE(SUM(ii.total_amount),0) AS total_revenue FROM invoice_items ii JOIN invoices i ON i.id = ii.invoice_id JOIN services s ON s.id = ii.item_id WHERE ii.item_type = 'SERVICE' GROUP BY s.id, s.business_unit_id, s.name ORDER BY total_qty DESC, s.id ASC", nativeQuery = true)
+	List<Map<String, Object>> getTopServicesAll();
+
+	@Query(value = "SELECT s.id, s.business_unit_id, s.name, COALESCE(SUM(ii.quantity),0) AS total_qty, COALESCE(SUM(ii.total_amount),0) AS total_revenue FROM invoice_items ii JOIN invoices i ON i.id = ii.invoice_id JOIN services s ON s.id = ii.item_id WHERE ii.item_type = 'SERVICE' AND i.billed_by = :userId GROUP BY s.id, s.business_unit_id, s.name ORDER BY total_qty DESC, s.id ASC", nativeQuery = true)
+	List<Map<String, Object>> getTopServicesByUser(@Param("userId") Long userId);
+
+	@Query(value = "SELECT s.id, s.business_unit_id, s.name, COALESCE(SUM(ii.quantity),0) AS total_qty, COALESCE(SUM(ii.total_amount),0) AS total_revenue FROM invoice_items ii JOIN invoices i ON i.id = ii.invoice_id JOIN services s ON s.id = ii.item_id WHERE ii.item_type = 'SERVICE' AND i.business_unit_id IN (:unitIds) GROUP BY s.id, s.business_unit_id, s.name ORDER BY total_qty DESC, s.id ASC", nativeQuery = true)
+	List<Map<String, Object>> getTopServicesByBusinessUnitIds(@Param("unitIds") List<Long> unitIds);
 
 
 }

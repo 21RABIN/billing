@@ -196,4 +196,17 @@ public class BusinessUnitServiceImpl implements BusinessUnitService {
 
 	}
 
+	@Override
+	public ResponseEntity<?> deleteBusinessUnit(Long id) {
+		BusinessUnit unit = bunitrepo.findById(id).orElse(null);
+		if (unit == null) {
+			return ResponseEntity.badRequest().body(new MessageResponse("Business Unit not found"));
+		}
+
+		unit.setIsActive(false);
+		bunitrepo.save(unit);
+
+		return ResponseEntity.ok(new MessageResponse("Business Unit Deleted Successfully"));
+	}
+
 }

@@ -203,4 +203,16 @@ public class ServicesImpl implements ServicesService {
 		}
 	}
 
+	@Override
+	public ResponseEntity<?> deleteService(Long id) {
+		Services service = servrepo.findById(id).orElse(null);
+		if (service == null) {
+			return ResponseEntity.badRequest().body(new MessageResponse("Service not found"));
+		}
+
+		service.setIsActive(false);
+		servrepo.save(service);
+		return ResponseEntity.ok(new MessageResponse("Service Deleted Successfully"));
+	}
+
 }

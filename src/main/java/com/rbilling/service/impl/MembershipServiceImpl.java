@@ -129,6 +129,18 @@ public class MembershipServiceImpl implements MembershipService {
 	    }
 	}
 
+	@Override
+	public ResponseEntity<?> deleteMembership(Long id) {
+		Membership membership = memsrepo.findById(id).orElse(null);
+		if (membership == null) {
+			return ResponseEntity.badRequest().body(new MessageResponse("Membership not found"));
+		}
+
+		membership.setIsActive(false);
+		memsrepo.save(membership);
+		return ResponseEntity.ok(new MessageResponse("Membership Deleted Successfully"));
+	}
+
 
 
 }

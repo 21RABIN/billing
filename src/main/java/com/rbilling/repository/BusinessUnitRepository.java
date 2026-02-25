@@ -20,6 +20,12 @@ public interface BusinessUnitRepository extends JpaRepository<BusinessUnit, Long
 	@Query(value = "SELECT bu.*,COALESCE(parent.name, 'N/A') AS parent_name FROM business_units bu LEFT JOIN business_units parent ON bu.parent_id = parent.id where (:bunitid=0 OR parent.id=:bunitid)", nativeQuery = true)
 	List<Map<String, Object>> getAllBusinessUnits(Long bunitid);
 
+	@Query(value = "SELECT bu.*,COALESCE(parent.name, 'N/A') AS parent_name FROM business_units bu LEFT JOIN business_units parent ON bu.parent_id = parent.id WHERE bu.id IN (:unitIds)", nativeQuery = true)
+	List<Map<String, Object>> getAllBusinessUnitsByIds(@Param("unitIds") List<Long> unitIds);
+
+	@Query(value = "SELECT bu.*,COALESCE(parent.name, 'N/A') AS parent_name FROM business_units bu LEFT JOIN business_units parent ON bu.parent_id = parent.id WHERE bu.id IN (:unitIds) AND bu.type='MAIN'", nativeQuery = true)
+	List<Map<String, Object>> getMainBusinessUnitsByIds(@Param("unitIds") List<Long> unitIds);
+
 	boolean existsByMobileAndIdNot(String mobile, Long id);
 
 	@Query(value = " select bunit.name,bunit.id,bunitparent.id as parentid,bunitparent.name as parentname from business_units bunit left join users u on u.id=bunit.user_id left join business_units bunitparent on bunitparent.parent_id=bunit.id  where bunit.user_id=7", nativeQuery = true)

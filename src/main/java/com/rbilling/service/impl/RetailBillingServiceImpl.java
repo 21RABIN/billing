@@ -16,27 +16,22 @@ import org.springframework.stereotype.Service;
 
 import com.rbilling.DTO.RetailInvoiceRequestDTO;
 import com.rbilling.model.Customer;
-import com.rbilling.model.Employee;
 import com.rbilling.model.Invoice;
 import com.rbilling.model.InvoiceItem;
 import com.rbilling.model.Payment;
 import com.rbilling.model.Product;
 import com.rbilling.model.ProductBatch;
 import com.rbilling.model.Services;
-import com.rbilling.model.User;
-import com.rbilling.repository.BusinessUnitRepository;
 import com.rbilling.repository.CustomerRepository;
-import com.rbilling.repository.EmployeeRepository;
 import com.rbilling.repository.InvoiceItemRepository;
 import com.rbilling.repository.InvoiceRepository;
 import com.rbilling.repository.PaymentRepository;
 import com.rbilling.repository.ProductBatchRepository;
 import com.rbilling.repository.ProductRepository;
 import com.rbilling.repository.PurchaseOrderRepository;
-import com.rbilling.repository.RoleRepository;
 import com.rbilling.repository.ServicesRepository;
-import com.rbilling.repository.UserRepository;
 import com.rbilling.responce.MessageResponse;
+import com.rbilling.service.AccessScopeService;
 import com.rbilling.service.RetailBillingService;
 
 import lombok.RequiredArgsConstructor;
@@ -62,19 +57,12 @@ public class RetailBillingServiceImpl implements RetailBillingService {
 	ServicesRepository servrepo;
 	@Autowired
 	PurchaseOrderRepository porepo;
-	@Autowired
-	RoleRepository roleRepository;
-	@Autowired
-	EmployeeRepository emprepo;
-	
-	@Autowired
-	UserRepository userrepo;
-	
-	@Autowired
-	BusinessUnitRepository bunitrepo;
 	
 	@Autowired
 	InvoiceRepository invoicerepo;
+
+	@Autowired
+	AccessScopeService accessScopeService;
 
 	public ResponseEntity<?> createRetailInvoice(RetailInvoiceRequestDTO request) {
 
@@ -228,67 +216,50 @@ public class RetailBillingServiceImpl implements RetailBillingService {
 	
 	public List<Map<String, Object>> getRoleBasedPayments(Long userId) {
 
-        String role = roleRepository.getRoleuserid(userId);
+		String role = accessScopeService.getRole(userId);
 
-        User user = userrepo.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+		if ("ROLE_ADMIN".equals(role)) {
+			return paymentRepo.getAllPayments();
+		}
 
-        // Get employee record to fetch business_unit
-        Employee emp = null;
+		if ("ROLE_EMPLOYEE".equals(role)) {
+			return paymentRepo.getPaymentsByUser(userId);
+		}
 
-        try {
-            emp = emprepo.findByUserId(userId);
-        } catch (Exception ex) {
-            emp = null;
-        }
+		List<Long> unitIds = accessScopeService.getAccessibleBusinessUnitIds(userId);
+		if (unitIds.isEmpty()) {
+			return new ArrayList<>();
+		}
 
-        if (role != null && role.contains("ROLE_ADMIN")) {
-            return paymentRepo.getAllPayments();
-        }
-
-        // ROLE_EMPLOYEE
-    
-        if (role.contains("ROLE_EMPLOYEE")) {
-        	System.out.println("");
-            return paymentRepo.getPaymentsByUser(userId);
-        }
-
-       
-        // ROLE_MANAGER / FRANCHISE / MAIN
-       
-        if (emp != null) {
-
-            Long unitId = emp.getBusiness_unit_id();
-
-            List<Long> allUnits =
-            		bunitrepo.getAllChildUnitIds(unitId);
-
-            return paymentRepo.getPaymentsByUnits(allUnits);
-        }
-
-        return new ArrayList<>();
-    }
+		return paymentRepo.getPaymentsByUnits(unitIds);
+	}
 	
 	
 	
 	 public List<Map<String, Object>> getPaymentData(Long userId) {
-		 
-		  String role = roleRepository.getRoleuserid(userId);
-		  
-		 Long filterUserId = "ADMIN".equalsIgnoreCase(role) ? null : userId;
+		String role = accessScopeService.getRole(userId);
 
+		BigDecimal totalReceived = BigDecimal.ZERO;
+		BigDecimal todayReceived = BigDecimal.ZERO;
+		BigDecimal totalInvoiceAmount = BigDecimal.ZERO;
 
-	        BigDecimal totalReceived =
-	                Optional.ofNullable(paymentRepo.getTotalReceivedByUser(filterUserId))
-	                        .orElse(BigDecimal.ZERO);
-
-	        BigDecimal todayReceived =
-	                Optional.ofNullable(paymentRepo.getTodayReceivedByUser(filterUserId))
-	                        .orElse(BigDecimal.ZERO);
-
-	        BigDecimal totalInvoiceAmount =
-	                Optional.ofNullable(invoicerepo.getTotalInvoiceAmount(filterUserId))
-	                        .orElse(BigDecimal.ZERO);
+		if ("ROLE_ADMIN".equals(role)) {
+			totalReceived = Optional.ofNullable(paymentRepo.getTotalReceivedByUser(null)).orElse(BigDecimal.ZERO);
+			todayReceived = Optional.ofNullable(paymentRepo.getTodayReceivedByUser(null)).orElse(BigDecimal.ZERO);
+			totalInvoiceAmount = Optional.ofNullable(invoicerepo.getTotalInvoiceAmount(null)).orElse(BigDecimal.ZERO);
+		} else if ("ROLE_EMPLOYEE".equals(role)) {
+			totalReceived = Optional.ofNullable(paymentRepo.getTotalReceivedByUser(userId)).orElse(BigDecimal.ZERO);
+			todayReceived = Optional.ofNullable(paymentRepo.getTodayReceivedByUser(userId)).orElse(BigDecimal.ZERO);
+			totalInvoiceAmount = Optional.ofNullable(invoicerepo.getTotalInvoiceAmount(userId)).orElse(BigDecimal.ZERO);
+		} else {
+			List<Long> unitIds = accessScopeService.getAccessibleBusinessUnitIds(userId);
+			if (!unitIds.isEmpty()) {
+				totalReceived = Optional.ofNullable(paymentRepo.getTotalReceivedByUnits(unitIds)).orElse(BigDecimal.ZERO);
+				todayReceived = Optional.ofNullable(paymentRepo.getTodayReceivedByUnits(unitIds)).orElse(BigDecimal.ZERO);
+				totalInvoiceAmount = Optional.ofNullable(invoicerepo.getTotalInvoiceAmountByUnits(unitIds))
+						.orElse(BigDecimal.ZERO);
+			}
+		}
 
 	        // Pending = Invoice - Payment
 	        BigDecimal pendingAmount = totalInvoiceAmount.subtract(totalReceived);

@@ -41,7 +41,7 @@ import com.rbilling.security.jwt.JwtUtils;
 import com.rbilling.security.service.UserDetailsImpl;
 
 @CrossOrigin(origins = "*", maxAge = 3600) // Allowing all origins is risky. Consider restricting to trusted domains in
-											// production.
+										   // production.
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {

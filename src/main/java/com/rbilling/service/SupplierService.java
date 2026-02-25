@@ -7,6 +7,8 @@ import com.rbilling.DTO.SupplierDTO;
 public interface SupplierService {
 
 	ResponseEntity<?> createUpdateSupplier(SupplierDTO supdto);
+	
+	ResponseEntity<?> deleteSupplier(Long id);
 
 	
 }
