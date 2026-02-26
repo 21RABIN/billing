@@ -51,6 +51,11 @@ public class CustomerController {
     public ResponseEntity<?> deleteCustomer(@PathVariable Long id) {
     	return customerService.deleteCustomer(id);
     }
+
+	@GetMapping("/history/{customerId}")
+	public ResponseEntity<?> getCustomerHistory(@PathVariable Long customerId, @RequestParam Long user_id) {
+		return customerService.getCustomerHistory(customerId, user_id);
+	}
     
 
  

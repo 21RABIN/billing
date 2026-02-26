@@ -10,4 +10,6 @@ public interface CustomerService {
 	
 	ResponseEntity<?> deleteCustomer(Long id);
 
+	ResponseEntity<?> getCustomerHistory(Long customerId, Long userId);
+
 }

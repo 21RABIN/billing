@@ -31,7 +31,7 @@ public class ProductServiceImpl implements ProductService {
 	public ResponseEntity<?> createUpdateProduct(ProductDTO proddto) {
 
 		// CREATE
-		if (proddto.getId() == null) {
+		if (proddto.getId() == 0) {
 
 			if (prodrepo.existsByName(proddto.getName())) {
 
